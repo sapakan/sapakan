@@ -1,0 +1,53 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Account {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  username  String   @unique @db.VarChar(256)
+  nickname  String?  @db.VarChar(256)
+  posts     Post[]   @relation("AccountPosts")
+  likes     Like[]   @relation("AccountLikes")
+}
+
+model Post {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  content   String?  @db.Text() // repost_to が not null なら、content が null である可能性がある
+  author    Account  @relation("AccountPosts", fields: [authorId], references: [id])
+  authorId  Int
+
+  replyTo    Post?  @relation("PostReply", fields: [replyToId], references: [id])
+  replyToId  Int?
+  repostTo   Post?  @relation("PostRepost", fields: [repostToId], references: [id])
+  repostToId Int?
+  repliedBy  Post[] @relation("PostReply")
+  repostedBy Post[] @relation("PostRepost")
+
+  likes Like[] @relation("PostLike")
+
+  likeCount    Int @default(0)
+  repostCount  Int @default(0)
+  repliesCount Int @default(0)
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  postId    Int
+  post      Post     @relation("PostLike", fields: [postId], references: [id])
+  likedById  Int
+  likedBy    Account  @relation("AccountLikes", fields: [likedById], references: [id])
+
+  // 'ある投稿'をいいねする'あるアカウント'は 1 レコード
+  @@unique([postId, likedById])
+}

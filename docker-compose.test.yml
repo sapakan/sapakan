@@ -1,0 +1,16 @@
+version: "3.8"
+
+services:
+  test_db:
+    image: postgres:15.1-bullseye
+    environment:
+      POSTGRES_USER: ${TEST_POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${TEST_POSTGRES_DB:-sapakan_test}
+    ports:
+      - 127.0.0.1:${TEST_POSTGRES_PORT:-5433}:5432
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+
+volumes:
+  postgres-data-dev: null
