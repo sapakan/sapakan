@@ -5,10 +5,11 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node ./src/index.ts",
-    "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:tsc",
+    "lint": "yarn lint:eslint && yarn lint:prettier && yarn lint:tsc && yarn lint:prisma",
     "lint:eslint": "eslint --ext .ts src",
     "lint:prettier": "prettier --check 'src/**/*.ts'",
     "lint:tsc": "tsc --noEmit",
+    "lint:prisma": "dotenv -e .env.test -- prisma validate",
     "fix": "yarn fix:eslint && yarn fix:prettier",
     "fix:eslint": "eslint --fix --ext .ts src",
     "fix:prettier": "prettier --write 'src/**/*.ts'",
