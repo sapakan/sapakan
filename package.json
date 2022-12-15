@@ -16,7 +16,7 @@
     "test": "yarn run test:dbup && yarn run test:reset && yarn run test:run && yarn run test:dbdown",
     "test:dbup": "docker-compose -f docker-compose.test.yml up -d",
     "test:dbdown": "docker-compose -f docker-compose.test.yml down -v",
-    "test:reset": "dotenv -e .env.test -- yarn prisma migrate reset --force",
+    "test:reset": "dotenv -e .env.test -- yarn prisma migrate reset --force && dotenv -e .env.test -- yarn prisma db push",
     "test:run": "dotenv -e .env.test -- yarn jest"
   },
   "devDependencies": {
