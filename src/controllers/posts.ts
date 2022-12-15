@@ -1,5 +1,7 @@
 import { Response, Request } from "express";
-import prisma, { Like } from "../lib/prisma";
+import prisma from "../lib/prisma";
+import { createLike, deleteLike } from "../services/create-like";
+import { createPost } from "../services/create-post";
 
 /**
  * POST /posts
@@ -40,13 +42,12 @@ export const postPosts = async (req: Request, res: Response) => {
       .json({ message: "author with the given id is not found" });
   }
 
-  const post = await prisma.post.create({
-    data: {
-      content,
-      authorId: author.id,
-      replyToId: replyToId,
-    },
+  const post = await createPost({
+    content,
+    authorId: author.id,
+    replyToId: replyToId,
   });
+
   res.status(200).json(post);
 };
 
@@ -131,6 +132,9 @@ export const getPostLikes = async (req: Request, res: Response) => {
  */
 export const postPostLikes = async (req: Request, res: Response) => {
   const postId = Number(req.params.id);
+  if (Number.isNaN(postId)) {
+    return res.status(400).json({ message: "id is not an integer" });
+  }
 
   // TODO: 現時点でアカウントの認証がないので、id = 1 のアカウントとして振る舞わせているのを解消する
   const likedById = 1;
@@ -184,10 +188,7 @@ async function postExists(postId: number): Promise<boolean> {
 /**
  * 与えられた postId と likedById に紐づく Like が存在するならば true を、そうでなければ false を返します。
  */
-async function userAlreadyLiked(
-  postId: number,
-  likedById: number
-): Promise<boolean> {
+function userAlreadyLiked(postId: number, likedById: number): Promise<boolean> {
   return prisma.like
     .findUnique({
       where: {
@@ -198,58 +199,4 @@ async function userAlreadyLiked(
       },
     })
     .then((like) => like !== null);
-}
-
-/**
- * 与えられた postId と likedById に紐づく Like を作成します。
- */
-async function createLike(postId: number, likedById: number): Promise<Like> {
-  const [like] = await prisma.$transaction([
-    prisma.like.create({
-      data: {
-        postId,
-        likedById,
-      },
-    }),
-    prisma.post.update({
-      where: {
-        id: postId,
-      },
-      data: {
-        likeCount: {
-          increment: 1,
-        },
-      },
-    }),
-  ]);
-
-  return like;
-}
-
-/**
- * 与えられた postId と likedById に紐づく Like を削除します。
- */
-async function deleteLike(postId: number, likedById: number): Promise<Like> {
-  const [like] = await prisma.$transaction([
-    prisma.like.delete({
-      where: {
-        postId_likedById: {
-          postId,
-          likedById,
-        },
-      },
-    }),
-    prisma.post.update({
-      where: {
-        id: postId,
-      },
-      data: {
-        likeCount: {
-          decrement: 1,
-        },
-      },
-    }),
-  ]);
-
-  return like;
 }

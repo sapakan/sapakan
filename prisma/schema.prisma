@@ -45,8 +45,8 @@ model Like {
   updatedAt DateTime @updatedAt
   postId    Int
   post      Post     @relation("PostLike", fields: [postId], references: [id])
-  likedById  Int
-  likedBy    Account  @relation("AccountLikes", fields: [likedById], references: [id])
+  likedById Int
+  likedBy   Account  @relation("AccountLikes", fields: [likedById], references: [id])
 
   // 'ある投稿'をいいねする'あるアカウント'は 1 レコード
   @@unique([postId, likedById])
