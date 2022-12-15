@@ -52,6 +52,9 @@ export const postAccounts = async (req: Request, res: Response) => {
  */
 export const getAccountLikes = async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ message: "id is not an integer" });
+  }
   const account = await prisma.account.findUnique({ where: { id } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
@@ -59,7 +62,7 @@ export const getAccountLikes = async (req: Request, res: Response) => {
 
   const likes = await prisma.like.findMany({
     where: {
-      id,
+      likedById: id,
     },
     include: {
       likedBy: true,
