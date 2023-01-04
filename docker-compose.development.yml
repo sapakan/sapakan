@@ -1,0 +1,14 @@
+services:
+  test_db:
+    image: postgres:15.1-bullseye
+    environment:
+      POSTGRES_USER: ${DEVELOPMENT_POSTGRES_USER:-sapakan_dev}
+      POSTGRES_PASSWORD: ${DEVELOPMENT_POSTGRES_PASSWORD:-sapadev}
+      POSTGRES_DB: ${DEVELOPMENT_POSTGRES_DB:-sapakan_development}
+    ports:
+      - 127.0.0.1:${DEVELOPMENT_POSTGRES_PORT:-5434}:5432
+    volumes:
+      - postgres-data-dev:/var/lib/postgresql/data
+
+volumes:
+  postgres-data-dev: null
