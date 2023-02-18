@@ -22,7 +22,9 @@ export const postPosts = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "repostToId is not an integer" });
     }
 
-    const repostTo = await prisma.post.findUnique({ where: { id: repostToId } });
+    const repostTo = await prisma.post.findUnique({
+      where: { id: repostToId },
+    });
     if (repostTo === null) {
       return res
         .status(400)
