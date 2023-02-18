@@ -172,14 +172,17 @@ describe(accountsController.getAccountPosts, () => {
     let postWithReply: Post;
     let postWithRepost: Post;
     let replyingPost: Post;
+    // （引用なし）Repost
     let repostingPost: Post;
+    // 引用 Repost
+    let repostingPostQuote: Post;
 
     beforeEach(async () => {
       account = await accountFactory.create();
       // 以下の投稿を 1 つずつ作成する
       // - 返信が付いていない投稿
       // - 返信が付いている投稿
-      // - Repost している投稿
+      // - Repost されている投稿
       [, postWithReply, postWithRepost] = await postFactory.createList(3, {
         authorId: account.id,
       });
@@ -192,6 +195,12 @@ describe(accountsController.getAccountPosts, () => {
       repostingPost = await postFactory.create({
         authorId: account.id,
         repostToId: postWithRepost.id,
+      });
+
+      repostingPostQuote = await postFactory.create({
+        authorId: account.id,
+        repostToId: postWithRepost.id,
+        content: "quoting"
       });
     });
 
@@ -247,10 +256,13 @@ describe(accountsController.getAccountPosts, () => {
       expect(mockRes.statusCode).toEqual(200);
       const resPosts = mockRes._getJSONData();
 
-      expect(resPosts.length).toEqual(4);
+      expect(resPosts.length).toEqual(5);
       // includeReplies を指定していないときのデフォルトは includeReplies: false の挙動になる
       expect(resPosts).toContainEqual(
         expect.objectContaining(toJSONObject(repostingPost))
+      );
+      expect(resPosts).toContainEqual(
+        expect.objectContaining(toJSONObject(repostingPostQuote))
       );
     });
 
@@ -270,6 +282,9 @@ describe(accountsController.getAccountPosts, () => {
       expect(resPosts.length).toEqual(3);
       expect(resPosts).not.toContainEqual(
         expect.objectContaining(toJSONObject(repostingPost))
+      );
+      expect(resPosts).not.toContainEqual(
+        expect.objectContaining(toJSONObject(repostingPostQuote))
       );
     });
 

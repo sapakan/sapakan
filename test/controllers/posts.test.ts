@@ -133,7 +133,31 @@ describe(postsController.postPosts, () => {
   });
 
   describe("repostToId が指定されているとき", () => {
-    test("repostToId に与えられた Post の ID が格納された投稿を作成する", async () => {
+    test("repostToId に与えられた Post の ID が格納された単純な Repost を作成する", async () => {
+      const account = await accountFactory.create();
+      const post = await postFactory.create();
+
+      const mockReq = httpMocks.createRequest({
+        method: "POST",
+        body: {
+          authorId: account.id,
+          repostToId: post.id,
+          // 引用 Repost **ではない** ので content を指定しない
+        },
+      });
+      const mockRes = httpMocks.createResponse();
+
+      await postsController.postPosts(mockReq, mockRes);
+      expect(mockRes.statusCode).toEqual(200);
+      expect(mockRes._getJSONData()).toEqual(
+        expect.objectContaining({
+          authorId: account.id,
+          repostToId: post.id,
+        })
+      );
+    });
+
+    test("repostToId に与えられた Post の ID が格納された引用 Repost を作成する", async () => {
       const account = await accountFactory.create();
       const post = await postFactory.create();
       const content = "reposting";
