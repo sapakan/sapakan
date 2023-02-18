@@ -87,9 +87,14 @@ export const getAccountPosts = async (req: Request, res: Response) => {
   }
 
   const includeReplies = req.query.includeReplies === "true";
+  const includeReposts = req.query.includeReposts === "true";
 
   const posts = await prisma.post.findMany({
-    where: { authorId: id, replyToId: includeReplies ? {} : null },
+    where: {
+      authorId: id,
+      replyToId: includeReplies ? {} : null,
+      repostToId: includeReposts ? {} : null,
+    },
     include: {
       author: true,
     },

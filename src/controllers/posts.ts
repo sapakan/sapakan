@@ -35,6 +35,20 @@ export const postPosts = async (req: Request, res: Response) => {
     }
   }
 
+  const repostToId = req.body.repostToId;
+  if (repostToId !== undefined) {
+    if (!Number.isInteger(repostToId)) {
+      return res.status(400).json({ message: "repostToId is not an integer" });
+    }
+
+    const repostTo = await prisma.post.findUnique({ where: { id: repostToId } });
+    if (repostTo === null) {
+      return res
+        .status(400)
+        .json({ message: "the reposting post with the given id is not found" });
+    }
+  }
+
   const author = await prisma.account.findUnique({ where: { id: authorId } });
   if (author === null) {
     return res
@@ -46,6 +60,7 @@ export const postPosts = async (req: Request, res: Response) => {
     content,
     authorId: author.id,
     replyToId: replyToId,
+    repostToId: repostToId,
   });
 
   res.status(200).json(post);

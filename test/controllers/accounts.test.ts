@@ -170,18 +170,28 @@ describe(accountsController.getAccountPosts, () => {
   describe("対応する ID のアカウントの投稿を取得するとき", () => {
     let account: Account;
     let postWithReply: Post;
+    let postWithRepost: Post;
     let replyingPost: Post;
+    let repostingPost: Post;
 
     beforeEach(async () => {
       account = await accountFactory.create();
-      // 返信が付いていない投稿、返信が付いている投稿の両方を 1 つずつ作成する
-      [, postWithReply] = await postFactory.createList(2, {
+      // 以下の投稿を 1 つずつ作成する
+      // - 返信が付いていない投稿
+      // - 返信が付いている投稿
+      // - Repost している投稿
+      [, postWithReply, postWithRepost] = await postFactory.createList(3, {
         authorId: account.id,
       });
 
       replyingPost = await postFactory.create({
         authorId: account.id,
         replyToId: postWithReply.id,
+      });
+
+      repostingPost = await postFactory.create({
+        authorId: account.id,
+        repostToId: postWithRepost.id,
       });
     });
 
@@ -198,7 +208,8 @@ describe(accountsController.getAccountPosts, () => {
       expect(mockRes.statusCode).toEqual(200);
       const resPosts = mockRes._getJSONData();
 
-      expect(resPosts.length).toEqual(3);
+      expect(resPosts.length).toEqual(4);
+      // includeReposts を指定していないときのデフォルトは includeReposts: false の挙動になる
       expect(resPosts).toContainEqual(
         expect.objectContaining(toJSONObject(replyingPost))
       );
@@ -217,9 +228,48 @@ describe(accountsController.getAccountPosts, () => {
       expect(mockRes.statusCode).toEqual(200);
       const resPosts: unknown[] = mockRes._getJSONData();
 
-      expect(resPosts.length).toEqual(2);
+      expect(resPosts.length).toEqual(3);
       expect(resPosts).not.toContainEqual(
         expect.objectContaining(toJSONObject(replyingPost))
+      );
+    });
+
+    test("Repost を含めた投稿を取得するとき、Repost を含む投稿を返す", async () => {
+      const mockReq = httpMocks.createRequest({
+        method: "GET",
+        params: { id: account.id },
+        query: { includeReposts: "true" },
+      });
+      const mockRes = httpMocks.createResponse();
+
+      await accountsController.getAccountPosts(mockReq, mockRes);
+
+      expect(mockRes.statusCode).toEqual(200);
+      const resPosts = mockRes._getJSONData();
+
+      expect(resPosts.length).toEqual(4);
+      // includeReplies を指定していないときのデフォルトは includeReplies: false の挙動になる
+      expect(resPosts).toContainEqual(
+        expect.objectContaining(toJSONObject(repostingPost))
+      );
+    });
+
+    test("Repost を含めた投稿を取得しないとき、Repost を含む投稿を返さない", async () => {
+      const mockReq = httpMocks.createRequest({
+        method: "GET",
+        params: { id: account.id },
+        query: { includeReposts: false },
+      });
+      const mockRes = httpMocks.createResponse();
+
+      await accountsController.getAccountPosts(mockReq, mockRes);
+
+      expect(mockRes.statusCode).toEqual(200);
+      const resPosts: unknown[] = mockRes._getJSONData();
+
+      expect(resPosts.length).toEqual(3);
+      expect(resPosts).not.toContainEqual(
+        expect.objectContaining(toJSONObject(repostingPost))
       );
     });
 
