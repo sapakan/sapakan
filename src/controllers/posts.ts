@@ -16,8 +16,24 @@ export const postPosts = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "authorId is not an integer" });
   }
 
+  const repostToId = req.body.repostToId;
+  if (repostToId !== undefined) {
+    if (!Number.isInteger(repostToId)) {
+      return res.status(400).json({ message: "repostToId is not an integer" });
+    }
+
+    const repostTo = await prisma.post.findUnique({
+      where: { id: repostToId },
+    });
+    if (repostTo === null) {
+      return res
+        .status(400)
+        .json({ message: "the reposting post with the given id is not found" });
+    }
+  }
+
   const content: string | undefined = req.body.content;
-  if (content === undefined) {
+  if (content === undefined && repostToId === undefined) {
     return res.status(400).json({ message: "content is required" });
   }
 
@@ -46,6 +62,7 @@ export const postPosts = async (req: Request, res: Response) => {
     content,
     authorId: author.id,
     replyToId: replyToId,
+    repostToId: repostToId,
   });
 
   res.status(200).json(post);

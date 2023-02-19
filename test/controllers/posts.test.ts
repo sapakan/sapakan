@@ -131,6 +131,77 @@ describe(postsController.postPosts, () => {
       });
     });
   });
+
+  describe("repostToId が指定されているとき", () => {
+    test("repostToId に与えられた Post の ID が格納された単純な Repost を作成する", async () => {
+      const account = await accountFactory.create();
+      const post = await postFactory.create();
+
+      const mockReq = httpMocks.createRequest({
+        method: "POST",
+        body: {
+          authorId: account.id,
+          repostToId: post.id,
+          // 引用 Repost **ではない** ので content を指定しない
+        },
+      });
+      const mockRes = httpMocks.createResponse();
+
+      await postsController.postPosts(mockReq, mockRes);
+      expect(mockRes.statusCode).toEqual(200);
+      expect(mockRes._getJSONData()).toEqual(
+        expect.objectContaining({
+          authorId: account.id,
+          repostToId: post.id,
+        })
+      );
+    });
+
+    test("repostToId に与えられた Post の ID が格納された引用 Repost を作成する", async () => {
+      const account = await accountFactory.create();
+      const post = await postFactory.create();
+      const content = "reposting";
+
+      const mockReq = httpMocks.createRequest({
+        method: "POST",
+        body: {
+          authorId: account.id,
+          content,
+          repostToId: post.id,
+        },
+      });
+      const mockRes = httpMocks.createResponse();
+
+      await postsController.postPosts(mockReq, mockRes);
+      expect(mockRes.statusCode).toEqual(200);
+      expect(mockRes._getJSONData()).toEqual(
+        expect.objectContaining({
+          authorId: account.id,
+          content,
+          repostToId: post.id,
+        })
+      );
+    });
+
+    test("repostToId に対応する Post が無い場合は 400 を返す", async () => {
+      const account = await accountFactory.create();
+      const mockReq = httpMocks.createRequest({
+        method: "POST",
+        body: {
+          authorId: account.id,
+          content: "reposting",
+          repostToId: 0,
+        },
+      });
+      const mockRes = httpMocks.createResponse();
+
+      await postsController.postPosts(mockReq, mockRes);
+      expect(mockRes.statusCode).toEqual(400);
+      expect(mockRes._getJSONData()).toEqual({
+        message: "the reposting post with the given id is not found",
+      });
+    });
+  });
 });
 describe(postsController.getPost, () => {
   test("与えられた ID に対応する投稿の情報を返す", async () => {

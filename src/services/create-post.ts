@@ -24,6 +24,21 @@ export async function createPost(
     ]);
 
     return post;
+  } else if (
+    candidatePost.repostToId !== undefined &&
+    candidatePost.repostToId !== null
+  ) {
+    // Repost を作成するときは Repost 対象の repostCount を increment する
+    const [post] = await prisma.$transaction([
+      prisma.post.create({
+        data: candidatePost,
+      }),
+      prisma.post.update({
+        where: { id: candidatePost.repostToId },
+        data: { repostCount: { increment: 1 } },
+      }),
+    ]);
+    return post;
   } else {
     return prisma.post.create({ data: candidatePost });
   }
