@@ -1,4 +1,4 @@
-import { Account, Like, Post, Prisma } from "@prisma/client";
+import { Account, Like, Post, Prisma, User } from "@prisma/client";
 import prisma from "../../src/lib/prisma";
 import { Factory } from "fishery";
 import { createLike } from "../../src/services/create-like";
@@ -7,18 +7,41 @@ import { createPost } from "../../src/services/create-post";
 import { randomUUID } from "crypto";
 
 const ID_UNASSIGNED = -1;
+/**
+ * "password" をハッシュ化したものの一つ
+ */
+const HASHED_PASSWORD_UNASSIGNED = '$argon2id$v=19$m=19456,t=2,p=1$wbgeR4EU53OL7DbVHonNCg$SddHOew3cOdJNpmP6QRqKF89aDD3gNlgIfBZafcNq3'
+
+export const userFactory = Factory.define<
+  Prisma.UserCreateArgs["data"],
+  never,
+  User
+>(({ onCreate }) => {
+  onCreate(user => {
+    return prisma.user.create({ data: user });
+  });
+
+  return {
+    hashedPassword: HASHED_PASSWORD_UNASSIGNED
+  }
+});
 
 export const accountFactory = Factory.define<
   Prisma.AccountCreateArgs["data"],
   never,
   Account
 >(({ onCreate }) => {
-  onCreate((account) => {
+  onCreate(async (account) => {
+    if (account.userId === ID_UNASSIGNED) {
+      const user = await userFactory.create()
+      account.userId = user.id;
+    }
     return prisma.account.create({ data: account });
   });
 
   return {
-    username: `user${randomUUID().replaceAll("-", "")}`,
+    userId: ID_UNASSIGNED,
+    username: `user${randomUUID().replaceAll("-", "")}`
   };
 });
 
