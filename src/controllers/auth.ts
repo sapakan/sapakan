@@ -14,9 +14,9 @@ passport.use(
     const user = await prisma.user.findFirst({
       where: {
         account: {
-          username: username
-        }
-      }
+          username: username,
+        },
+      },
     });
     if (user === null) {
       return done(null, false, { message: incorrectCredentialMessage });
@@ -24,8 +24,8 @@ passport.use(
     if (await verifyPassword(user.hashedPassword, password)) {
       const account = await prisma.account.findUniqueOrThrow({
         where: {
-          userId: user.id
-        }
+          userId: user.id,
+        },
       });
       return done(null, { accountId: account.id, username: account.username });
     } else {
@@ -72,34 +72,34 @@ const postAuthSignup = async (
   if (!username.match(/^[a-zA-Z][0-9a-zA-Z]*$/)) {
     return res.status(400).json({
       message:
-        "username must begin with [a-zA-Z], and can only use [a-zA-Z0-9]."
+        "username must begin with [a-zA-Z], and can only use [a-zA-Z0-9].",
     });
   }
   if (await accountWithUsernameExists(username)) {
     // 409 Conflict を返すのが適切かもしれないが、とりあえず 400 を返しておくこととする
     // https://stackoverflow.com/questions/3825990/http-response-code-for-post-when-resource-already-exists
     return res.status(400).json({
-      message: `The username "${username}" is already taken by another user.`
+      message: `The username "${username}" is already taken by another user.`,
     });
   }
 
   const createdUser = await prisma.user.create({
     data: {
-      hashedPassword: await generateHash(password)
-    }
+      hashedPassword: await generateHash(password),
+    },
   });
 
   const createdAccount = await prisma.account.create({
     data: {
       username,
-      userId: createdUser.id
+      userId: createdUser.id,
     },
     select: {
       id: true,
       username: true,
       createdAt: true,
-      updatedAt: true
-    }
+      updatedAt: true,
+    },
   });
 
   req.login(
@@ -119,7 +119,7 @@ router
     "/auth/signin",
     passport.authenticate("local", {
       // TODO: 自分のアカウントの情報を取得できるエンドポイントを用意し、そこにリダイレクトさせる
-      successRedirect: "/"
+      successRedirect: "/",
     })
   )
   .post("/auth/signout", (req, res, next) => {
