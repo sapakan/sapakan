@@ -17,7 +17,7 @@
     "test:dbup": "docker-compose -f docker-compose.test.yml up -d",
     "test:dbdown": "docker-compose -f docker-compose.test.yml down -v",
     "test:reset": "dotenv -e .env.test -- yarn prisma migrate reset --force && dotenv -e .env.test -- yarn prisma db push",
-    "test:run": "dotenv -e .env.test -- yarn jest",
+    "test:run": "dotenv -e .env.test -- yarn jest --forceExit",
     "dev:start": "dotenv -e .env.development -- ts-node ./src/server.ts",
     "dev:setup": "yarn run dev:dbup && yarn run dev:reset",
     "dev:studio": "dotenv -e .env.development -- prisma studio",
