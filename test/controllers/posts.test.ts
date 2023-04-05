@@ -2,7 +2,7 @@ import { Like } from "@prisma/client";
 import httpMocks from "node-mocks-http";
 import * as postsController from "../../src/controllers/posts";
 import prisma from "../../src/lib/prisma";
-import { accountFactory, postFactory, likeFactory } from "../lib/factories";
+import { accountFactory, postFactory, likeFactory, userFactory } from "../lib/factories";
 
 describe(postsController.postPosts, () => {
   test("与えられた authorId と content に基いて投稿を作成する", async () => {
@@ -308,7 +308,7 @@ describe(postsController.postPostLikes, () => {
     const account = await prisma.account.upsert({
       where: { id: 1 },
       update: { username: "testuser1" },
-      create: { username: "testuser1" },
+      create: { username: "testuser1", userId: (await userFactory.create()).id },
     });
     const post = await postFactory.create();
     await likeFactory.create({ likedById: account.id, postId: post.id });
@@ -341,7 +341,7 @@ describe(postsController.deletePostLikes, () => {
     const account = await prisma.account.upsert({
       where: { id: 1 },
       update: { username: "testuser1" },
-      create: { username: "testuser1" },
+      create: { username: "testuser1", userId: (await userFactory.create()).id },
     });
     const post = await postFactory.create({ authorId: account.id });
     await likeFactory.create({ postId: post.id, likedById: account.id });
