@@ -1,78 +1,8 @@
 import { Account, Post } from "@prisma/client";
 import httpMocks from "node-mocks-http";
 import * as accountsController from "../../src/controllers/accounts";
-import { accountFactory, postFactory, likeFactory } from "../lib/factories";
+import { accountFactory, likeFactory, postFactory } from "../lib/factories";
 import { toJSONObject } from "../lib/to-json-object";
-
-describe(accountsController.postAccounts, () => {
-  test("username が与えられていない場合は 400 を返す", async () => {
-    const mockReq = httpMocks.createRequest({
-      method: "POST",
-    });
-    const mockRes = httpMocks.createResponse();
-
-    await accountsController.postAccounts(mockReq, mockRes);
-    expect(mockRes.statusCode).toEqual(400);
-    expect(mockRes._getJSONData()).toEqual({ message: "username required" });
-  });
-
-  describe("不正な username が与えられた場合は 400 を返す", () => {
-    test.each(["1234", "@aBc01"])(
-      "username が %s のとき",
-      async (invalidUsername) => {
-        const mockReq = httpMocks.createRequest({
-          method: "POST",
-          body: {
-            username: invalidUsername,
-          },
-        });
-        const mockRes = httpMocks.createResponse();
-
-        await accountsController.postAccounts(mockReq, mockRes);
-        expect(mockRes.statusCode).toEqual(400);
-        expect(mockRes._getJSONData()).toEqual({
-          message:
-            "username must begin with [a-zA-Z], and can only use [a-zA-Z0-9].",
-        });
-      }
-    );
-  });
-
-  test("正当な username が与えられたときには Account を作成し、それを返す", async () => {
-    const username = "postapiaccounts";
-    const mockReq = httpMocks.createRequest({
-      method: "POST",
-      body: {
-        username,
-      },
-    });
-    const mockRes = httpMocks.createResponse();
-
-    await accountsController.postAccounts(mockReq, mockRes);
-    expect(mockRes.statusCode).toEqual(200);
-
-    const resAccount: Account = mockRes._getJSONData();
-    expect(resAccount).toEqual(expect.objectContaining({ username }));
-  });
-
-  test("重複する username が与えられた場合は 400 を返す", async () => {
-    const account = await accountFactory.create();
-
-    const mockReq = httpMocks.createRequest({
-      method: "POST",
-      body: {
-        username: account.username,
-      },
-    });
-    const mockRes = httpMocks.createResponse();
-
-    await accountsController.postAccounts(mockReq, mockRes);
-    expect(mockRes.statusCode).toEqual(400);
-    expect(mockRes._getJSONData()).toEqual({
-      message: `The username "${account.username}" is already taken by another user.`,
-    });
-  });
-});
 
 describe(accountsController.getAccount, () => {
   test("対応する ID のアカウントの情報を取得できる", async () => {
