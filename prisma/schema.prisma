@@ -13,8 +13,18 @@ model Account {
   updatedAt DateTime @updatedAt
   username  String   @unique @db.VarChar(256)
   nickname  String?  @db.VarChar(256)
+  user      User     @relation(fields: [userId], references: [id])
+  userId    Int      @unique
   posts     Post[]   @relation("AccountPosts")
   likes     Like[]   @relation("AccountLikes")
+}
+
+model User {
+  id             Int      @id @default(autoincrement())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  hashedPassword String   @db.VarChar(256)
+  account        Account?
 }
 
 model Post {

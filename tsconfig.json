@@ -6,6 +6,7 @@
     "forceConsistentCasingInFileNames": true,
     "moduleResolution": "node",
     "esModuleInterop": true,
+    "noEmit": true,
   },
   "include": ["src/**/*", "test/**/*"],
   "exclude": ["node_modules"],

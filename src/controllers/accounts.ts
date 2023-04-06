@@ -1,4 +1,4 @@
-import { Response, Request } from "express";
+import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 
 /**
@@ -11,40 +11,6 @@ export const getAccount = async (req: Request, res: Response) => {
     return res.status(404).json({ message: "Account not found" });
   }
   res.status(200).json(account);
-};
-
-/**
- * POST /accounts
- */
-export const postAccounts = async (req: Request, res: Response) => {
-  // このへんの validation は既存パッケージを使ってもう少しキレイにやりたい
-  const username: string | undefined = req.body.username;
-
-  if (username === undefined) {
-    return res.status(400).json({ message: "username required" });
-  }
-  if (!username.match(/^[a-zA-Z][0-9a-zA-Z]*$/)) {
-    return res.status(400).json({
-      message:
-        "username must begin with [a-zA-Z], and can only use [a-zA-Z0-9].",
-    });
-  }
-
-  if (await accountWithUsernameExists(username)) {
-    // 409 Conflict を返すのが適切かもしれないが、とりあえず 400 を返しておくこととする
-    // https://stackoverflow.com/questions/3825990/http-response-code-for-post-when-resource-already-exists
-    return res.status(400).json({
-      message: `The username "${username}" is already taken by another user.`,
-    });
-  }
-
-  const createdAccount = await prisma.account.create({
-    data: {
-      username,
-    },
-  });
-
-  res.status(200).json(createdAccount);
 };
 
 /**
