@@ -6,29 +6,31 @@ import { generateHash } from "../../src/lib/auth";
 
 describe("POST /auth/signup", () => {
   test("username が与えられていない場合は 400 を返す", async () => {
-    const response = await supertest.agent(app)
-      .post("/auth/signup");
+    const response = await supertest.agent(app).post("/auth/signup");
 
     expect(response.statusCode).toEqual(400);
-    expect(response.body).toEqual({ message: "username and password are required" });
+    expect(response.body).toEqual({
+      message: "username and password are required",
+    });
   });
 
   describe("不正な username が与えられた場合は 400 を返す", () => {
     test.each(["1234", "@aBc01"])(
       "username が %s のとき",
       async (invalidUsername) => {
-        const response = await supertest.agent(app)
+        const response = await supertest
+          .agent(app)
           .post("/auth/signup")
           .type("form")
           .send({
             username: invalidUsername,
-            password: "password"
+            password: "password",
           });
 
         expect(response.statusCode).toEqual(400);
         expect(response.body).toEqual({
           message:
-            "username must begin with [a-zA-Z], and can only use [a-zA-Z0-9]."
+            "username must begin with [a-zA-Z], and can only use [a-zA-Z0-9].",
         });
       }
     );
@@ -36,12 +38,13 @@ describe("POST /auth/signup", () => {
 
   test("正当な username が与えられたときには Account を作成し、それを返す", async () => {
     const username = "postapiaccounts";
-    const response = await supertest.agent(app)
+    const response = await supertest
+      .agent(app)
       .post("/auth/signup")
       .type("form")
       .send({
         username: username,
-        password: "password"
+        password: "password",
       });
 
     expect(response.statusCode).toEqual(201);
@@ -53,27 +56,29 @@ describe("POST /auth/signup", () => {
   test("重複する username が与えられた場合は 400 を返す", async () => {
     const account = await accountFactory.create();
 
-    const response = await supertest.agent(app)
+    const response = await supertest
+      .agent(app)
       .post("/auth/signup")
       .type("form")
       .send({
         username: account.username,
-        password: "password"
+        password: "password",
       });
 
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({
-      message: `The username "${account.username}" is already taken by another user.`
+      message: `The username "${account.username}" is already taken by another user.`,
     });
   });
 });
 describe("POST /auth/signin", () => {
   test("存在しないl username が与えられた場合は 400 を返す", async () => {
-    const response = await supertest.agent(app)
+    const response = await supertest
+      .agent(app)
       .post("/auth/signin")
       .type("form")
       .send({
-        username: "thisaccountdoesnotexist"
+        username: "thisaccountdoesnotexist",
       });
 
     expect(response.statusCode).toEqual(400);
@@ -82,12 +87,13 @@ describe("POST /auth/signin", () => {
   test("間違ったパスワードが与えられた場合は 401 を返す", async () => {
     const account = await accountFactory.create();
 
-    const response = await supertest.agent(app)
+    const response = await supertest
+      .agent(app)
       .post("/auth/signin")
       .type("form")
       .send({
         username: account.username,
-        password: "wrongpassword"
+        password: "wrongpassword",
       });
 
     expect(response.statusCode).toEqual(401);
@@ -95,14 +101,17 @@ describe("POST /auth/signin", () => {
 
   test("正しい認証情報が与えられたとき", async () => {
     const password = "password1234";
-    const user = await userFactory.create({ hashedPassword: await generateHash(password) });
+    const user = await userFactory.create({
+      hashedPassword: await generateHash(password),
+    });
     const account = await accountFactory.create({ userId: user.id });
-    const response = await supertest.agent(app)
+    const response = await supertest
+      .agent(app)
       .post("/auth/signin")
       .type("form")
       .send({
         username: account.username,
-        password: password
+        password: password,
       });
 
     expect(response.statusCode).toEqual(302);
@@ -114,23 +123,20 @@ describe("POST /auth/signout", () => {
     // given
     const password = "password123";
     const user = await userFactory.create({
-      hashedPassword: await generateHash(password)
+      hashedPassword: await generateHash(password),
     });
     const account = await accountFactory.create({
-      userId: user.id
+      userId: user.id,
     });
 
     const agent = supertest.agent(app);
-    agent.post("/auth/signin")
-      .type("form")
-      .send({
-        username: account.username,
-        password: password
-      });
+    agent.post("/auth/signin").type("form").send({
+      username: account.username,
+      password: password,
+    });
 
     // when
-    const response = await supertest.agent(app)
-      .post("/auth/signout");
+    const response = await supertest.agent(app).post("/auth/signout");
 
     // then
     expect(response.statusCode).toEqual(204);
