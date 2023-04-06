@@ -10,20 +10,21 @@ const ID_UNASSIGNED = -1;
 /**
  * "password" をハッシュ化したものの一つ
  */
-const HASHED_PASSWORD_UNASSIGNED = '$argon2id$v=19$m=19456,t=2,p=1$wbgeR4EU53OL7DbVHonNCg$SddHOew3cOdJNpmP6QRqKF89aDD3gNlgIfBZafcNq3'
+const HASHED_PASSWORD_UNASSIGNED =
+  "$argon2id$v=19$m=19456,t=2,p=1$wbgeR4EU53OL7DbVHonNCg$SddHOew3cOdJNpmP6QRqKF89aDD3gNlgIfBZafcNq3";
 
 export const userFactory = Factory.define<
   Prisma.UserCreateArgs["data"],
   never,
   User
 >(({ onCreate }) => {
-  onCreate(user => {
+  onCreate((user) => {
     return prisma.user.create({ data: user });
   });
 
   return {
-    hashedPassword: HASHED_PASSWORD_UNASSIGNED
-  }
+    hashedPassword: HASHED_PASSWORD_UNASSIGNED,
+  };
 });
 
 export const accountFactory = Factory.define<
@@ -33,7 +34,7 @@ export const accountFactory = Factory.define<
 >(({ onCreate }) => {
   onCreate(async (account) => {
     if (account.userId === ID_UNASSIGNED) {
-      const user = await userFactory.create()
+      const user = await userFactory.create();
       account.userId = user.id;
     }
     return prisma.account.create({ data: account });
@@ -41,7 +42,7 @@ export const accountFactory = Factory.define<
 
   return {
     userId: ID_UNASSIGNED,
-    username: `user${randomUUID().replaceAll("-", "")}`
+    username: `user${randomUUID().replaceAll("-", "")}`,
   };
 });
 

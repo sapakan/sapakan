@@ -1,35 +1,26 @@
 import { Account, Post } from "@prisma/client";
-import httpMocks from "node-mocks-http";
+import supertest from "supertest";
 import * as accountsController from "../../src/controllers/accounts";
 import { accountFactory, likeFactory, postFactory } from "../lib/factories";
 import { toJSONObject } from "../lib/to-json-object";
+import app from "../../src/app";
 
 describe(accountsController.getAccount, () => {
   test("対応する ID のアカウントの情報を取得できる", async () => {
     const account = await accountFactory.create();
 
-    const mockReq = httpMocks.createRequest({
-      method: "GET",
-      params: { id: account.id },
-    });
-    const mockRes = httpMocks.createResponse();
+    const response = await supertest(app).get(`/accounts/${account.id}`);
 
-    await accountsController.getAccount(mockReq, mockRes);
-    expect(mockRes.statusCode).toEqual(200);
+    expect(response.statusCode).toEqual(200);
 
-    const resAccount: Account = mockRes._getJSONData();
+    const resAccount: Account = response.body;
     expect(resAccount).toEqual(expect.objectContaining(toJSONObject(account)));
   });
 
   test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
-    const mockReq = httpMocks.createRequest({
-      method: "GET",
-      params: { id: 0 },
-    });
-    const mockRes = httpMocks.createResponse();
+    const response = await supertest(app).get(`/accounts/0`);
 
-    await accountsController.getAccount(mockReq, mockRes);
-    expect(mockRes.statusCode).toEqual(404);
+    expect(response.statusCode).toEqual(404);
   });
 });
 
@@ -41,18 +32,11 @@ describe(accountsController.getAccountLikes, () => {
     await likeFactory.create({ postId: posts[0].id, likedById: account.id });
     await likeFactory.create({ postId: posts[1].id, likedById: account.id });
 
-    const mockReq = httpMocks.createRequest({
-      method: "GET",
-      params: {
-        id: account.id,
-      },
-    });
-    const mockRes = httpMocks.createResponse();
+    const response = await supertest(app).get(`/accounts/${account.id}/likes`);
 
-    await accountsController.getAccountLikes(mockReq, mockRes);
-    expect(mockRes.statusCode).toEqual(200);
+    expect(response.statusCode).toEqual(200);
 
-    const resLikes: unknown[] = mockRes._getJSONData();
+    const resLikes: unknown[] = response.body;
     expect(resLikes.length).toEqual(2);
     expect(resLikes).toContainEqual(
       expect.objectContaining({ postId: posts[0].id, likedById: account.id })
@@ -63,33 +47,18 @@ describe(accountsController.getAccountLikes, () => {
   });
 
   test("存在しない ID の Account の like を取得しようとしたら 404 を返す", async () => {
-    const mockReq = httpMocks.createRequest({
-      method: "GET",
-      params: {
-        id: 0,
-      },
-    });
-    const mockRes = httpMocks.createResponse();
+    const response = await supertest(app).get(`/accounts/0/likes`);
 
-    await accountsController.getAccountLikes(mockReq, mockRes);
-    expect(mockRes.statusCode).toEqual(404);
-    expect(mockRes._getJSONData()).toEqual({ message: "Account not found" });
+    expect(response.statusCode).toEqual(404);
+    expect(response.body).toEqual({ message: "Account not found" });
   });
 
   describe("不正な ID が与えられた場合は 400 を返す", () => {
     test("ID が abc のとき", async () => {
-      const accountId = "abc";
-      const mockReq = httpMocks.createRequest({
-        method: "GET",
-        params: {
-          id: accountId,
-        },
-      });
-      const mockRes = httpMocks.createResponse();
+      const response = await supertest(app).get(`/accounts/abc/likes`);
 
-      await accountsController.getAccountLikes(mockReq, mockRes);
-      expect(mockRes.statusCode).toEqual(400);
-      expect(mockRes._getJSONData()).toEqual({
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual({
         message: "id is not an integer",
       });
     });
@@ -130,22 +99,17 @@ describe(accountsController.getAccountPosts, () => {
       repostingPostQuote = await postFactory.create({
         authorId: account.id,
         repostToId: postWithRepost.id,
-        content: "quoting"
+        content: "quoting",
       });
     });
 
     test("リプライを含めた投稿を取得するとき、リプライを含む投稿を返す", async () => {
-      const mockReq = httpMocks.createRequest({
-        method: "GET",
-        params: { id: account.id },
-        query: { includeReplies: "true" },
-      });
-      const mockRes = httpMocks.createResponse();
+      const response = await supertest(app).get(
+        `/accounts/${account.id}/posts?includeReplies=true`
+      );
 
-      await accountsController.getAccountPosts(mockReq, mockRes);
-
-      expect(mockRes.statusCode).toEqual(200);
-      const resPosts = mockRes._getJSONData();
+      expect(response.statusCode).toEqual(200);
+      const resPosts: unknown[] = response.body;
 
       expect(resPosts.length).toEqual(4);
       // includeReposts を指定していないときのデフォルトは includeReposts: false の挙動になる
@@ -155,17 +119,12 @@ describe(accountsController.getAccountPosts, () => {
     });
 
     test("リプライを含めた投稿を取得しないとき、リプライを含む投稿を返さない", async () => {
-      const mockReq = httpMocks.createRequest({
-        method: "GET",
-        params: { id: account.id },
-        query: { includeReplies: false },
-      });
-      const mockRes = httpMocks.createResponse();
+      const response = await supertest(app).get(
+        `/accounts/${account.id}/posts?includeReplies=false`
+      );
 
-      await accountsController.getAccountPosts(mockReq, mockRes);
-
-      expect(mockRes.statusCode).toEqual(200);
-      const resPosts: unknown[] = mockRes._getJSONData();
+      expect(response.statusCode).toEqual(200);
+      const resPosts: unknown[] = response.body;
 
       expect(resPosts.length).toEqual(3);
       expect(resPosts).not.toContainEqual(
@@ -174,17 +133,12 @@ describe(accountsController.getAccountPosts, () => {
     });
 
     test("Repost を含めた投稿を取得するとき、Repost を含む投稿を返す", async () => {
-      const mockReq = httpMocks.createRequest({
-        method: "GET",
-        params: { id: account.id },
-        query: { includeReposts: "true" },
-      });
-      const mockRes = httpMocks.createResponse();
+      const response = await supertest(app).get(
+        `/accounts/${account.id}/posts?includeReposts=true`
+      );
 
-      await accountsController.getAccountPosts(mockReq, mockRes);
-
-      expect(mockRes.statusCode).toEqual(200);
-      const resPosts = mockRes._getJSONData();
+      expect(response.statusCode).toEqual(200);
+      const resPosts: unknown[] = response.body;
 
       expect(resPosts.length).toEqual(5);
       // includeReplies を指定していないときのデフォルトは includeReplies: false の挙動になる
@@ -197,17 +151,12 @@ describe(accountsController.getAccountPosts, () => {
     });
 
     test("Repost を含めた投稿を取得しないとき、Repost を含む投稿を返さない", async () => {
-      const mockReq = httpMocks.createRequest({
-        method: "GET",
-        params: { id: account.id },
-        query: { includeReposts: false },
-      });
-      const mockRes = httpMocks.createResponse();
+      const response = await supertest(app).get(
+        `/accounts/${account.id}/posts?includeReposts=false`
+      );
 
-      await accountsController.getAccountPosts(mockReq, mockRes);
-
-      expect(mockRes.statusCode).toEqual(200);
-      const resPosts: unknown[] = mockRes._getJSONData();
+      expect(response.statusCode).toEqual(200);
+      const resPosts: unknown[] = response.body;
 
       expect(resPosts.length).toEqual(3);
       expect(resPosts).not.toContainEqual(
@@ -224,17 +173,12 @@ describe(accountsController.getAccountPosts, () => {
         authorId: anotherAccount.id,
       });
 
-      const mockReq = httpMocks.createRequest({
-        method: "GET",
-        params: { id: account.id },
-        query: { includeReplies: true },
-      });
-      const mockRes = httpMocks.createResponse();
+      const response = await supertest(app).get(
+        `/accounts/${account.id}/posts?includeReplies=true`
+      );
 
-      await accountsController.getAccountPosts(mockReq, mockRes);
-
-      expect(mockRes.statusCode).toEqual(200);
-      const resPosts = mockRes._getJSONData();
+      expect(response.statusCode).toEqual(200);
+      const resPosts: unknown[] = response.body;
 
       expect(resPosts).not.toContainEqual(
         expect.objectContaining({

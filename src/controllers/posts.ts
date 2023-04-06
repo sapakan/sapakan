@@ -8,16 +8,16 @@ import { createPost } from "../services/create-post";
  */
 export const postPosts = async (req: Request, res: Response) => {
   // このへんの validation は既存パッケージを使ってもう少しキレイにやりたい
-  const authorId = req.body.authorId;
-  if (authorId === undefined) {
+  if (req.body.authorId === undefined) {
     return res.status(400).json({ message: "authorId is required" });
   }
+  const authorId = parseInt(req.body.authorId);
   if (!Number.isInteger(authorId)) {
     return res.status(400).json({ message: "authorId is not an integer" });
   }
 
-  const repostToId = req.body.repostToId;
-  if (repostToId !== undefined) {
+  const repostToId = parseIntOrUndefined(req.body.repostToId);
+  if (req.body.repostToId !== undefined) {
     if (!Number.isInteger(repostToId)) {
       return res.status(400).json({ message: "repostToId is not an integer" });
     }
@@ -33,11 +33,11 @@ export const postPosts = async (req: Request, res: Response) => {
   }
 
   const content: string | undefined = req.body.content;
-  if (content === undefined && repostToId === undefined) {
+  if (content === undefined && req.body.repostToId === undefined) {
     return res.status(400).json({ message: "content is required" });
   }
 
-  const replyToId = req.body.replyToId;
+  const replyToId = parseIntOrUndefined(req.body.replyToId);
   if (replyToId !== undefined) {
     if (!Number.isInteger(replyToId)) {
       return res.status(400).json({ message: "replyToId is not an integer" });
@@ -216,4 +216,18 @@ function userAlreadyLiked(postId: number, likedById: number): Promise<boolean> {
       },
     })
     .then((like) => like !== null);
+}
+
+/**
+ * 与えられた値が整数を表現する文字列ならばその整数を、そうでなければ undefined を返します。
+ */
+function parseIntOrUndefined(value: unknown): number | undefined {
+  if (typeof value === "string") {
+    const parsed = parseInt(value);
+    if (Number.isNaN(parsed)) {
+      return undefined;
+    }
+    return parsed;
+  }
+  return undefined;
 }
