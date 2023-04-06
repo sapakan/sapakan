@@ -8,13 +8,7 @@ import { createPost } from "../services/create-post";
  */
 export const postPosts = async (req: Request, res: Response) => {
   // このへんの validation は既存パッケージを使ってもう少しキレイにやりたい
-  if (req.body.authorId === undefined) {
-    return res.status(400).json({ message: "authorId is required" });
-  }
-  const authorId = parseInt(req.body.authorId);
-  if (!Number.isInteger(authorId)) {
-    return res.status(400).json({ message: "authorId is not an integer" });
-  }
+  const authorId = req.user?.accountId;
 
   const repostToId = parseIntOrUndefined(req.body.repostToId);
   if (req.body.repostToId !== undefined) {
