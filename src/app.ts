@@ -6,6 +6,7 @@ import * as postsController from "./controllers/posts";
 import * as accountsController from "./controllers/accounts";
 import * as authController from "./controllers/auth";
 import passport from "passport";
+import { ensureLoggedIn } from "./lib/middlewares";
 
 const app = express()
   .use(
@@ -29,7 +30,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", homeController.index);
-app.post("/posts", postsController.postPosts);
+app.post("/posts", ensureLoggedIn, postsController.postPosts);
 app.get("/posts/:id", postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
 app.post("/posts/:id/likes", postsController.postPostLikes);

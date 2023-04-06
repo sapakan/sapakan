@@ -11,7 +11,7 @@ const ID_UNASSIGNED = -1;
  * "password" をハッシュ化したものの一つ
  */
 const HASHED_PASSWORD_UNASSIGNED =
-  "$argon2id$v=19$m=19456,t=2,p=1$wbgeR4EU53OL7DbVHonNCg$SddHOew3cOdJNpmP6QRqKF89aDD3gNlgIfBZafcNq3";
+  "$argon2id$v=19$m=19456,t=2,p=1$Rmu7iu0nocJQLBwdtCTJzw$L2CnIC7SR9+VkszJ71EZ8agmo1T8tts+A9gx3JPeMNg";
 
 export const userFactory = Factory.define<
   Prisma.UserCreateArgs["data"],

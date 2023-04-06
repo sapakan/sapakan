@@ -10,48 +10,35 @@ import {
 } from "../lib/factories";
 import supertest from "supertest";
 import app from "../../src/app";
+import {
+  getLoggedInAgent,
+  getLoggedInAgentAndAccount,
+} from "../lib/get-logged-in-agent";
 
 describe("POST /posts", () => {
-  test("与えられた authorId と content に基いて投稿を作成する", async () => {
-    const account = await accountFactory.create();
+  test("与えられた content に基いて投稿を作成する", async () => {
     const content = "hello!";
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
 
-    const response = await supertest(app).post(`/posts`).type("form").send({
-      authorId: account.id,
+    const response = await agent.post(`/posts`).type("form").send({
       content: content,
     });
 
     expect(response.statusCode).toEqual(200);
     expect(response.body).toEqual(
-      expect.objectContaining({ content, authorId: account.id })
+      expect.objectContaining({ content: content, authorId: account.id })
     );
   });
 
-  test("ID が与えられていない場合は 400 を返す", async () => {
-    const response = await supertest(app).post(`/posts`).type("form").send({
-      content: "hello!",
-    });
+  test("ログインしていない場合は 302 を返す", async () => {
+    const response = await supertest(app).post(`/posts`);
 
-    expect(response.statusCode).toEqual(400);
-    expect(response.body).toEqual({ message: "authorId is required" });
-  });
-
-  test("ID が整数として解釈できない文字列だった場合は 400 を返す", async () => {
-    const response = await supertest(app).post(`/posts`).type("form").send({
-      authorId: "example",
-      content: "hello!",
-    });
-
-    expect(response.statusCode).toEqual(400);
-    expect(response.body).toEqual({
-      message: "authorId is not an integer",
-    });
+    expect(response.statusCode).toEqual(302);
   });
 
   test("content が指定されていない場合は 400 を返す", async () => {
-    const response = await supertest(app).post(`/posts`).type("form").send({
-      authorId: 123,
-    });
+    const agent = await getLoggedInAgent(app);
+    const response = await agent.post(`/posts`);
 
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({
@@ -59,26 +46,13 @@ describe("POST /posts", () => {
     });
   });
 
-  test("authorId に対応する Account が無い場合は 400 を返す", async () => {
-    const response = await supertest(app).post(`/posts`).type("form").send({
-      authorId: 0,
-      content: "hello!",
-    });
-
-    expect(response.statusCode).toEqual(400);
-    expect(response.body).toEqual({
-      message: "author with the given id is not found",
-    });
-  });
-
   describe("replyToId が指定されているとき", () => {
     test("replyToId に与えられた Post の ID が格納された投稿を作成する", async () => {
-      const account = await accountFactory.create();
       const post = await postFactory.create();
       const content = "replying";
 
-      const response = await supertest(app).post(`/posts`).type("form").send({
-        authorId: account.id,
+      const [agent, account] = await getLoggedInAgentAndAccount(app);
+      const response = await agent.post(`/posts`).type("form").send({
         content: content,
         replyToId: post.id,
       });
@@ -94,9 +68,8 @@ describe("POST /posts", () => {
     });
 
     test("replyToId に対応する Post が無い場合は 400 を返す", async () => {
-      const account = await accountFactory.create();
-      const response = await supertest(app).post(`/posts`).type("form").send({
-        authorId: account.id,
+      const agent = await getLoggedInAgent(app);
+      const response = await agent.post(`/posts`).type("form").send({
         content: "replying",
         replyToId: 0,
       });
@@ -110,11 +83,10 @@ describe("POST /posts", () => {
 
   describe("repostToId が指定されているとき", () => {
     test("repostToId に与えられた Post の ID が格納された単純な Repost を作成する", async () => {
-      const account = await accountFactory.create();
       const post = await postFactory.create();
 
-      const response = await supertest(app).post(`/posts`).type("form").send({
-        authorId: account.id,
+      const [agent, account] = await getLoggedInAgentAndAccount(app);
+      const response = await agent.post(`/posts`).type("form").send({
         repostToId: post.id,
         // 引用 Repost **ではない** ので content を指定しない
       });
@@ -129,12 +101,11 @@ describe("POST /posts", () => {
     });
 
     test("repostToId に与えられた Post の ID が格納された引用 Repost を作成する", async () => {
-      const account = await accountFactory.create();
       const post = await postFactory.create();
       const content = "reposting";
 
-      const response = await supertest(app).post(`/posts`).type("form").send({
-        authorId: account.id,
+      const [agent, account] = await getLoggedInAgentAndAccount(app);
+      const response = await agent.post(`/posts`).type("form").send({
         content: content,
         repostToId: post.id,
       });
@@ -150,10 +121,8 @@ describe("POST /posts", () => {
     });
 
     test("repostToId に対応する Post が無い場合は 400 を返す", async () => {
-      const account = await accountFactory.create();
-
-      const response = await supertest(app).post(`/posts`).type("form").send({
-        authorId: account.id,
+      const agent = await getLoggedInAgent(app);
+      const response = await agent.post(`/posts`).type("form").send({
         content: "reposting",
         repostToId: 0,
       });
