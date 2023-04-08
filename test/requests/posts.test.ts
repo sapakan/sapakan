@@ -14,6 +14,7 @@ import {
   getLoggedInAgent,
   getLoggedInAgentAndAccount,
 } from "../lib/get-logged-in-agent";
+import { toJSONObject } from "../lib/to-json-object";
 
 describe("POST /posts", () => {
   test("与えられた content に基いて投稿を作成する", async () => {
@@ -134,6 +135,52 @@ describe("POST /posts", () => {
     });
   });
 });
+
+describe("GET /posts/:id/likes", () => {
+  test("与えられた ID に対応する投稿のいいね一覧を返す", async () => {
+    const post = await postFactory.create();
+    const accounts = await accountFactory.createList(2);
+    const likes = [
+      await likeFactory.create({ postId: post.id, likedById: accounts[0].id }),
+      await likeFactory.create({ postId: post.id, likedById: accounts[1].id }),
+    ];
+
+    const response = await supertest(app).get(`/posts/${post.id}/likes`);
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          postId: likes[0].postId,
+          likedById: likes[0].likedById,
+          createdAt: toJSONObject(likes[0].createdAt),
+          likedBy: expect.objectContaining({
+            id: accounts[0].id,
+          }),
+        }),
+        expect.objectContaining({
+          postId: likes[1].postId,
+          likedById: likes[1].likedById,
+          createdAt: toJSONObject(likes[1].createdAt),
+          likedBy: expect.objectContaining({
+            id: accounts[1].id,
+          }),
+        }),
+      ])
+    );
+  });
+  test("存在しない投稿の ID が与えられたら 404 を返す", async () => {
+    const response = await supertest(app).get(`/posts/0/likes`);
+
+    expect(response.statusCode).toEqual(404);
+  });
+  test("不正な ID が与えられたら 400 を返す", async () => {
+    const response = await supertest(app).get(`/posts/aaa/likes`);
+
+    expect(response.statusCode).toEqual(400);
+  });
+});
+
 describe(postsController.getPost, () => {
   test("与えられた ID に対応する投稿の情報を返す", async () => {
     const post = await postFactory.create();

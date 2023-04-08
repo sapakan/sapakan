@@ -105,6 +105,9 @@ export const getPost = async (req: Request, res: Response) => {
  */
 export const getPostLikes = async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ message: "id is not an integer" });
+  }
   const post = await prisma.post.findUnique({
     where: { id },
     include: { author: true },
@@ -113,29 +116,12 @@ export const getPostLikes = async (req: Request, res: Response) => {
     return res.status(404).json({ message: "not found" });
   }
 
-  // その投稿を自分でいいねしているかを確認する
-
-  // アカウントの認証などが存在せず、GET リクエストでアカウントの ID を引っ張ってくるのも面倒なので
-  // ひとまず ID が 1 な Account が存在し強制的にそれが主体となるようにする
-  // TODO: 操作の主体が ID が 1 のアカウントになっているのでどうにかする
-  const likedById = 1;
-
-  const like = await prisma.like.findUnique({
-    where: {
-      postId_likedById: {
-        postId: id,
-        likedById,
-      },
-    },
+  const likes = await prisma.like.findMany({
+    where: { postId: id },
+    include: { likedBy: true },
   });
 
-  const isLikedByMe = Boolean(like);
-
-  const resBody = {
-    ...post,
-    isLikedByMe,
-  };
-  res.status(200).json(resBody);
+  res.status(200).json(likes);
 };
 
 /**
