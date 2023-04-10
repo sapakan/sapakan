@@ -2,6 +2,7 @@ import { Response, Request } from "express";
 import prisma from "../lib/prisma";
 import { createLike, deleteLike } from "../services/create-like";
 import { createPost } from "../services/create-post";
+import assert from "assert";
 
 /**
  * POST /posts
@@ -133,8 +134,9 @@ export const postPostLikes = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "id is not an integer" });
   }
 
-  // TODO: 現時点でアカウントの認証がないので、id = 1 のアカウントとして振る舞わせているのを解消する
-  const likedById = 1;
+  const likedById = req.user?.accountId;
+  // 前段に ensureLoggedIn があるためここの likedById が undefined になることはない
+  assert(likedById !== undefined);
 
   // Like を付ける対象の投稿が存在しないならば 404 を返す
   if (!(await postExists(postId))) {

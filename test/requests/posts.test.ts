@@ -207,31 +207,26 @@ describe(postsController.getPost, () => {
   });
 });
 
-describe(postsController.postPostLikes, () => {
+describe("POST /posts/:id/likes", () => {
   test("与えられた ID に対応する投稿にいいねする", async () => {
     const post = await postFactory.create();
 
-    const response = await supertest(app).post(`/posts/${post.id}/likes`);
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    const response = await agent.post(`/posts/${post.id}/likes`);
 
     expect(response.statusCode).toEqual(200);
 
     const resLike: unknown = response.body;
     const expected: Partial<Like> = {
       postId: post.id,
-      likedById: 1, // TODO: アカウント ID が 1 であることに依存しないようなテストを書く
+      likedById: account.id,
     };
     expect(resLike).toEqual(expect.objectContaining(expected));
   });
 
   test("与えられた postId に対応する post がないときは 404 を返す", async () => {
-    const account = await accountFactory.create();
-
-    const response = await supertest(app)
-      .post(`/posts/0/likes`)
-      .type("form")
-      .send({
-        likedById: account.id,
-      });
+    const agent = await getLoggedInAgent(app);
+    const response = await agent.post(`/posts/0/likes`);
 
     expect(response.statusCode).toEqual(404);
     expect(response.body).toEqual({
@@ -242,7 +237,8 @@ describe(postsController.postPostLikes, () => {
   describe("不正な id が与えられた場合は 400 を返す", () => {
     test("id が abc のとき", async () => {
       const postId = "abc";
-      const response = await supertest(app).post(`/posts/${postId}/likes`);
+      const agent = await getLoggedInAgent(app);
+      const response = await agent.post(`/posts/${postId}/likes`);
 
       expect(response.statusCode).toEqual(400);
       expect(response.body).toEqual({
@@ -252,25 +248,11 @@ describe(postsController.postPostLikes, () => {
   });
 
   test("与えられた postId に対応する post を既に like していたら 400 を返す", async () => {
-    // TODO: アカウント ID が 1 であることに依存しないようなテストを書く
-    // 現状は認証機能がないので、このエンドポイントを利用する際には ID = 1 のアカウントによるものとして振る舞わせている
-    const account = await prisma.account.upsert({
-      where: { id: 1 },
-      update: { username: "testuser1" },
-      create: {
-        username: "testuser1",
-        userId: (await userFactory.create()).id,
-      },
-    });
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
     const post = await postFactory.create();
     await likeFactory.create({ likedById: account.id, postId: post.id });
 
-    const response = await supertest(app)
-      .post(`/posts/${post.id}/likes`)
-      .type("form")
-      .send({
-        likedById: account.id,
-      });
+    const response = await agent.post(`/posts/${post.id}/likes`);
 
     expect(response.statusCode).toEqual(409);
     expect(response.body).toEqual({
@@ -278,7 +260,23 @@ describe(postsController.postPostLikes, () => {
     });
   });
 
-  // TODO: 「like したら対象の post の likeCount がインクリメントされる」のテスト
+  test("like したら対象の post の likeCount がインクリメントされる", async () => {
+    const agent = await getLoggedInAgent(app);
+    const post = await postFactory.create();
+
+    await agent.post(`/posts/${post.id}/likes`);
+
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: post.id },
+    });
+    expect(updatedPost?.likeCount).toEqual(1);
+  });
+
+  test("ログインしていない場合は 302 を返す", async () => {
+    const response = await supertest(app).post(`/posts/1/likes`);
+
+    expect(response.statusCode).toEqual(302);
+  });
 });
 
 describe(postsController.deletePostLikes, () => {
