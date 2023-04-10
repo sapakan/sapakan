@@ -1,7 +1,12 @@
 import { Account, Post } from "@prisma/client";
 import supertest from "supertest";
 import * as accountsController from "../../src/controllers/accounts";
-import { accountFactory, likeFactory, postFactory } from "../lib/factories";
+import {
+  accountFactory,
+  followingFactory,
+  likeFactory,
+  postFactory,
+} from "../lib/factories";
 import { toJSONObject } from "../lib/to-json-object";
 import app from "../../src/app";
 
@@ -185,6 +190,104 @@ describe(accountsController.getAccountPosts, () => {
           id: anotherAccountPost.id,
         })
       );
+    });
+  });
+});
+
+describe("GET /accounts/:id/followees", () => {
+  test("存在する ID の Account の followees を取得できる", async () => {
+    const account = await accountFactory.create();
+    const followees = await accountFactory.createList(2);
+
+    await followingFactory.create({
+      followerId: account.id,
+      followeeId: followees[0].id,
+    });
+    await followingFactory.create({
+      followerId: account.id,
+      followeeId: followees[1].id,
+    });
+
+    const response = await supertest(app).get(
+      `/accounts/${account.id}/followees`
+    );
+
+    expect(response.statusCode).toEqual(200);
+
+    const resFollowees: unknown[] = response.body;
+    expect(resFollowees.length).toEqual(2);
+    expect(resFollowees).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ followeeId: followees[0].id }),
+        expect.objectContaining({ followeeId: followees[1].id }),
+      ])
+    );
+  });
+
+  test("存在しない ID の Account の followees を取得しようとしたら 404 を返す", async () => {
+    const response = await supertest(app).get(`/accounts/0/followees`);
+
+    expect(response.statusCode).toEqual(404);
+    expect(response.body).toEqual({ message: "Account not found" });
+  });
+
+  describe("不正な ID が与えられた場合は 400 を返す", () => {
+    test("ID が abc のとき", async () => {
+      const response = await supertest(app).get(`/accounts/abc/followees`);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual({
+        message: "id is not an integer",
+      });
+    });
+  });
+});
+
+describe("GET /accounts/:id/followers", () => {
+  test("存在する ID の Account の followers を取得できる", async () => {
+    const account = await accountFactory.create();
+    const followers = await accountFactory.createList(2);
+
+    await followingFactory.create({
+      followerId: followers[0].id,
+      followeeId: account.id,
+    });
+    await followingFactory.create({
+      followerId: followers[1].id,
+      followeeId: account.id,
+    });
+
+    const response = await supertest(app).get(
+      `/accounts/${account.id}/followers`
+    );
+
+    expect(response.statusCode).toEqual(200);
+
+    const resFollowers: unknown[] = response.body;
+    expect(resFollowers.length).toEqual(2);
+    expect(resFollowers).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ followerId: followers[0].id }),
+        expect.objectContaining({ followerId: followers[1].id }),
+      ])
+    );
+  });
+
+  test("存在しない ID の Account の followers を取得しようとしたら 404 を返す", async () => {
+    const response = await supertest(app).get(`/accounts/0/followers`);
+
+    expect(response.statusCode).toEqual(404);
+    expect(response.body).toEqual({ message: "Account not found" });
+  });
+
+  describe("不正な ID が与えられた場合は 400 を返す", () => {
+    test("ID が abc のとき", async () => {
+      const response = await supertest(app).get(`/accounts/abc/followers`);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual({
+        message: "id is not an integer",
+      });
     });
   });
 });

@@ -24,6 +24,17 @@ describe("POST /followings", () => {
       .send({ followeeId: followee.id });
 
     expect(response.statusCode).toEqual(201);
+    const following = await prisma.following.findUnique({
+      where: {
+        followeeId_followerId: {
+          followerId: account.id,
+          followeeId: followee.id,
+        },
+      },
+    });
+    assert(following !== null);
+    expect(following.followerId).toEqual(account.id);
+    expect(following.followeeId).toEqual(followee.id);
   });
 
   test("フォローしたユーザーのフォロワー数が 1 増える", async () => {
@@ -128,6 +139,15 @@ describe("DELETE /followings", () => {
       .send({ followeeId: followee.id });
 
     expect(response.statusCode).toEqual(200);
+    const following = await prisma.following.findUnique({
+      where: {
+        followeeId_followerId: {
+          followerId: account.id,
+          followeeId: followee.id,
+        },
+      },
+    });
+    assert(following === null);
   });
 
   test("フォローしたユーザーのフォロワー数が 1 減る", async () => {
