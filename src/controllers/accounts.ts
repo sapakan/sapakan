@@ -67,12 +67,3 @@ export const getAccountPosts = async (req: Request, res: Response) => {
   });
   res.status(200).json(posts);
 };
-
-/**
- * 与えられた Username を持つアカウントが存在するならば true を、そうでなければ false を返します。
- */
-function accountWithUsernameExists(username: string): Promise<boolean> {
-  return prisma.account
-    .count({ where: { username } })
-    .then((count) => count > 0);
-}
