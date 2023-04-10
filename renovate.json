@@ -17,6 +17,18 @@
       ],
       "automerge": true,
       "automergeType": "pr"
+    },
+    {
+      "matchPackageNames": [
+        "@swc/core"
+      ],
+      "matchUpdateTypes": [
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true,
+      "automergeType": "pr"
     }
   ]
 }
