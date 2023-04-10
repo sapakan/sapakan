@@ -3,6 +3,7 @@ import prisma from "../lib/prisma";
 import { createLike, deleteLike } from "../services/create-like";
 import { createPost } from "../services/create-post";
 import assert from "assert";
+import parseIntOrUndefined from "../lib/parse-int-or-undefined";
 
 /**
  * POST /posts
@@ -199,18 +200,4 @@ function userAlreadyLiked(postId: number, likedById: number): Promise<boolean> {
       },
     })
     .then((like) => like !== null);
-}
-
-/**
- * 与えられた値が整数を表現する文字列ならばその整数を、そうでなければ undefined を返します。
- */
-function parseIntOrUndefined(value: unknown): number | undefined {
-  if (typeof value === "string") {
-    const parsed = parseInt(value);
-    if (Number.isNaN(parsed)) {
-      return undefined;
-    }
-    return parsed;
-  }
-  return undefined;
 }
