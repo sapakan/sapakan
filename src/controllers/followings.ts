@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import parseIntOrUndefined from "../lib/parse-int-or-undefined";
 import assert from "assert";
 import prisma from "../lib/prisma";
-import { createFollowing } from "../services/create-following";
+import { createFollowing, deleteFollowing } from "../services/create-following";
 
 export const postFollowings = async (req: Request, res: Response) => {
   const followeeId = parseIntOrUndefined(req.body.followeeId);
@@ -39,6 +39,38 @@ export const postFollowings = async (req: Request, res: Response) => {
   const following = await createFollowing(followeeId, followerId);
   res.status(201).json(following);
 };
+
+export const deleteFollowings = async (req: Request, res: Response) => {
+  const followeeId = parseIntOrUndefined(req.body.followeeId);
+  if (req.body.followeeId === undefined) {
+    return res.status(400).json({ message: "followeeId is required" });
+  }
+  if (followeeId === undefined) {
+    return res.status(400).json({ message: "followeeId is not an integer" });
+  }
+
+  // 前段に ensureLoggedIn があるためここの followerId が undefined になることはない
+  const followerId = req.user?.accountId;
+  assert(followerId !== undefined);
+
+  // 与えられた ID に対応するアカウントの存在確認
+  const followee = await prisma.account.findUnique({
+    where: { id: followeeId },
+  });
+  if (followee === null) {
+    return res
+      .status(400)
+      .json({ message: "followee with the given id is not found" });
+  }
+
+  if (!(await userAlreadyFollowed(followeeId, followerId))) {
+    return res.status(400).json({ message: "not followed" });
+  }
+
+  const following = await deleteFollowing(followeeId, followerId);
+  res.status(200).json(following);
+};
+
 /**
  * 与えられた followeeId と followerId に紐づく Following が存在するならば true を、そうでなければ false を返します。
  */

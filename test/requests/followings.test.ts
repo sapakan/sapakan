@@ -107,3 +107,108 @@ describe("POST /followings", () => {
     expect(response.body).toEqual({ message: "already followed" });
   });
 });
+
+describe("DELETE /followings", () => {
+  test("ログインしていないときは 302 を返す", async () => {
+    const response = await supertest.agent(app).delete("/followings");
+    expect(response.statusCode).toEqual(302);
+  });
+
+  test("与えられた ID のユーザーのフォローを解除できる", async () => {
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    const followee = await accountFactory.create();
+    await followingFactory.create({
+      followerId: account.id,
+      followeeId: followee.id,
+    });
+
+    const response = await agent
+      .delete("/followings")
+      .type("form")
+      .send({ followeeId: followee.id });
+
+    expect(response.statusCode).toEqual(200);
+  });
+
+  test("フォローしたユーザーのフォロワー数が 1 減る", async () => {
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    const followee = await accountFactory.create();
+    await followingFactory.create({
+      followerId: account.id,
+    });
+    await followingFactory.create({
+      followerId: account.id,
+      followeeId: followee.id,
+    });
+
+    await agent
+      .delete("/followings")
+      .type("form")
+      .send({ followeeId: followee.id });
+
+    const updatedFollower = await prisma.account.findUnique({
+      where: { id: account.id },
+    });
+    assert(updatedFollower !== null);
+    expect(updatedFollower.followeeCount).toEqual(1);
+  });
+
+  test("フォローされたユーザーのフォロワー数が 1 減る", async () => {
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    const followee = await accountFactory.create();
+    await followingFactory.create({
+      followeeId: followee.id,
+    });
+    await followingFactory.create({
+      followerId: account.id,
+      followeeId: followee.id,
+    });
+
+    await agent
+      .delete("/followings")
+      .type("form")
+      .send({ followeeId: followee.id });
+
+    const updatedFollowee = await prisma.account.findUnique({
+      where: { id: followee.id },
+    });
+    assert(updatedFollowee !== null);
+    expect(updatedFollowee.followerCount).toEqual(1);
+  });
+
+  test("与えられた ID ユーザーが存在しないときは 400 を返す", async () => {
+    const agent = await getLoggedInAgent(app);
+
+    const response = await agent
+      .delete("/followings")
+      .type("form")
+      .send({ followeeId: 0 });
+    expect(response.statusCode).toEqual(400);
+    expect(response.body).toEqual({
+      message: "followee with the given id is not found",
+    });
+  });
+
+  test("与えられた ID が不正な形式の場合は 400 を返す", async () => {
+    const agent = await getLoggedInAgent(app);
+
+    const request = await agent
+      .delete("/followings")
+      .type("form")
+      .send({ followeeId: "a" });
+    expect(request.statusCode).toEqual(400);
+    expect(request.body).toEqual({ message: "followeeId is not an integer" });
+  });
+
+  test("フォローしていないユーザーをフォロー解除しようとしたときは 400 を返す", async () => {
+    const agent = await getLoggedInAgent(app);
+    const followee = await accountFactory.create();
+
+    const response = await agent
+      .delete("/followings")
+      .type("form")
+      .send({ followeeId: followee.id });
+    expect(response.statusCode).toEqual(400);
+    expect(response.body).toEqual({ message: "not followed" });
+  });
+});

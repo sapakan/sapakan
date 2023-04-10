@@ -40,5 +40,10 @@ app.get("/accounts/:id", accountsController.getAccount);
 app.get("/accounts/:id/posts", accountsController.getAccountPosts);
 app.get("/accounts/:id/likes", accountsController.getAccountLikes);
 app.post("/followings", ensureLoggedIn, followingsController.postFollowings);
+app.delete(
+  "/followings",
+  ensureLoggedIn,
+  followingsController.deleteFollowings
+);
 
 export default app;
