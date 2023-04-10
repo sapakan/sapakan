@@ -33,7 +33,7 @@ app.get("/", homeController.index);
 app.post("/posts", ensureLoggedIn, postsController.postPosts);
 app.get("/posts/:id", postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
-app.post("/posts/:id/likes", postsController.postPostLikes);
+app.post("/posts/:id/likes", ensureLoggedIn, postsController.postPostLikes);
 app.delete("/posts/:id/likes", postsController.deletePostLikes);
 app.get("/accounts/:id", accountsController.getAccount);
 app.get("/accounts/:id/posts", accountsController.getAccountPosts);
