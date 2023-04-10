@@ -17,6 +17,11 @@ model Account {
   userId    Int      @unique
   posts     Post[]   @relation("AccountPosts")
   likes     Like[]   @relation("AccountLikes")
+
+  followees     Following[] @relation("AccountFollowee")
+  followers     Following[] @relation("AccountFollower")
+  followeeCount Int         @default(0)
+  followerCount Int         @default(0)
 }
 
 model User {
@@ -60,4 +65,15 @@ model Like {
 
   // 'ある投稿'をいいねする'あるアカウント'は 1 レコード
   @@unique([postId, likedById])
+}
+
+model Following {
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  followee   Account  @relation("AccountFollowee", fields: [followeeId], references: [id])
+  followeeId Int
+  follower   Account  @relation("AccountFollower", fields: [followerId], references: [id])
+  followerId Int
+
+  @@id([followeeId, followerId])
 }
