@@ -191,6 +191,15 @@ describe(accountsController.getAccountPosts, () => {
         })
       );
     });
+
+    test("不正な投稿の ID を指定したときに 400 を返す", async () => {
+      const response = await supertest(app).get(`/accounts/abc/posts`);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual({
+        message: "id is not an integer",
+      });
+    });
   });
 });
 
