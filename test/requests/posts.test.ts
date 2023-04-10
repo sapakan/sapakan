@@ -247,7 +247,7 @@ describe("POST /posts/:id/likes", () => {
     });
   });
 
-  test("与えられた postId に対応する post を既に like していたら 400 を返す", async () => {
+  test("与えられた postId に対応する post を既に like していたら 409 を返す", async () => {
     const [agent, account] = await getLoggedInAgentAndAccount(app);
     const post = await postFactory.create();
     await likeFactory.create({ likedById: account.id, postId: post.id });
