@@ -247,7 +247,7 @@ describe("POST /posts/:id/likes", () => {
     });
   });
 
-  test("与えられた postId に対応する post を既に like していたら 400 を返す", async () => {
+  test("与えられた postId に対応する post を既に like していたら 409 を返す", async () => {
     const [agent, account] = await getLoggedInAgentAndAccount(app);
     const post = await postFactory.create();
     await likeFactory.create({ likedById: account.id, postId: post.id });
@@ -279,23 +279,13 @@ describe("POST /posts/:id/likes", () => {
   });
 });
 
-describe(postsController.deletePostLikes, () => {
+describe("DELETE /posts/:id/likes", () => {
   test("与えられた ID に対応する投稿へのいいねを削除する", async () => {
-    // TODO: アカウント ID が 1 であることに依存しないようなテストを書く
-    // 現状は認証に基づいた機能がないので、このエンドポイントを利用する際には ID = 1 のアカウントによるものとして振る舞わせている
-    const account = await prisma.account.upsert({
-      where: { id: 1 },
-      update: { username: "testuser1" },
-      create: {
-        username: "testuser1",
-        userId: (await userFactory.create()).id,
-      },
-    });
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
     const post = await postFactory.create({ authorId: account.id });
     await likeFactory.create({ postId: post.id, likedById: account.id });
 
-    // 認証に基づいた処理が無いため暗黙的に ID が 1 のアカウントとして振る舞ってもらう
-    const response = await supertest(app).delete(`/posts/${post.id}/likes`);
+    const response = await agent.delete(`/posts/${post.id}/likes`);
 
     expect(response.statusCode).toEqual(204);
 
@@ -303,5 +293,49 @@ describe(postsController.deletePostLikes, () => {
     expect(likedPost?.likeCount).toBe(0);
   });
 
-  // TODO: prisma.like.delete に失敗したときの挙動を確認する
+  test("与えられた ID に対応する投稿へのいいねがないときは 400 を返す", async () => {
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    const post = await postFactory.create({ authorId: account.id });
+
+    const response = await agent.delete(`/posts/${post.id}/likes`);
+
+    expect(response.statusCode).toEqual(400);
+    expect(response.body).toEqual({
+      message: "not liked",
+    });
+  });
+
+  test("与えられた ID に対応する投稿がないときは 404 を返す", async () => {
+    const agent = await getLoggedInAgent(app);
+    const response = await agent.delete(`/posts/0/likes`);
+
+    expect(response.statusCode).toEqual(404);
+    expect(response.body).toEqual({
+      message: "post not found",
+    });
+  });
+
+  test("like を消したら対象の post の likedCount がデクリメントされる", async () => {
+    // given
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    const anotherAccount = await accountFactory.create();
+    const post = await postFactory.create({ authorId: account.id });
+    await likeFactory.create({ postId: post.id, likedById: account.id });
+    await likeFactory.create({ postId: post.id, likedById: anotherAccount.id });
+
+    // when
+    await agent.delete(`/posts/${post.id}/likes`);
+
+    // then
+    const updatedPost = await prisma.post.findUnique({
+      where: { id: post.id },
+    });
+    expect(updatedPost?.likeCount).toEqual(1);
+  });
+
+  test("ログインしていない場合は 302 を返す", async () => {
+    const response = await supertest(app).delete(`/posts/1/likes`);
+
+    expect(response.statusCode).toEqual(302);
+  });
 });

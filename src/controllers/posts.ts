@@ -158,8 +158,9 @@ export const postPostLikes = async (req: Request, res: Response) => {
 export const deletePostLikes = async (req: Request, res: Response) => {
   const postId = Number(req.params.id);
 
-  // TODO: 現時点でアカウントの認証がないので、id = 1 のアカウントとして振る舞わせているのを解消する
-  const likedById = 1;
+  const likedById = req.user?.accountId;
+  // 前段に ensureLoggedIn があるためここの likedById が undefined になることはない
+  assert(likedById !== undefined);
 
   // Like を付ける対象の投稿が存在しないならば 404 を返す
   if (!(await postExists(postId))) {
@@ -167,7 +168,7 @@ export const deletePostLikes = async (req: Request, res: Response) => {
   }
 
   if (!(await userAlreadyLiked(postId, likedById))) {
-    return res.status(409).json({ message: "not liked" });
+    return res.status(400).json({ message: "not liked" });
   }
 
   await deleteLike(postId, likedById);

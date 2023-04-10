@@ -34,7 +34,7 @@ app.post("/posts", ensureLoggedIn, postsController.postPosts);
 app.get("/posts/:id", postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
 app.post("/posts/:id/likes", ensureLoggedIn, postsController.postPostLikes);
-app.delete("/posts/:id/likes", postsController.deletePostLikes);
+app.delete("/posts/:id/likes", ensureLoggedIn, postsController.deletePostLikes);
 app.get("/accounts/:id", accountsController.getAccount);
 app.get("/accounts/:id/posts", accountsController.getAccountPosts);
 app.get("/accounts/:id/likes", accountsController.getAccountLikes);
