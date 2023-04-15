@@ -1,10 +1,11 @@
-import { Account, Like, Post, Prisma, User } from "@prisma/client";
+import { Account, Following, Like, Post, Prisma, User } from "@prisma/client";
 import prisma from "../../src/lib/prisma";
 import { Factory } from "fishery";
 import { createLike } from "../../src/services/create-like";
 import assert from "assert";
 import { createPost } from "../../src/services/create-post";
 import { randomUUID } from "crypto";
+import { createFollowing } from "../../src/services/create-following";
 
 const ID_UNASSIGNED = -1;
 /**
@@ -89,5 +90,35 @@ export const likeFactory = Factory.define<
   return {
     postId: ID_UNASSIGNED,
     likedById: ID_UNASSIGNED,
+  };
+});
+
+export const followingFactory = Factory.define<
+  Prisma.FollowingCreateArgs["data"],
+  never,
+  Following
+>(({ onCreate }) => {
+  onCreate(async (following) => {
+    if (
+      following.followerId === undefined ||
+      following.followerId === ID_UNASSIGNED
+    ) {
+      const account = await accountFactory.create();
+      following.followerId = account.id;
+    }
+    if (
+      following.followeeId === undefined ||
+      following.followeeId === ID_UNASSIGNED
+    ) {
+      const account = await accountFactory.create();
+      following.followeeId = account.id;
+    }
+
+    return createFollowing(following.followeeId, following.followerId);
+  });
+
+  return {
+    followerId: ID_UNASSIGNED,
+    followeeId: ID_UNASSIGNED,
   };
 });

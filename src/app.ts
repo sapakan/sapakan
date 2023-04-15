@@ -5,6 +5,7 @@ import * as homeController from "./controllers/home";
 import * as postsController from "./controllers/posts";
 import * as accountsController from "./controllers/accounts";
 import * as authController from "./controllers/auth";
+import * as followingsController from "./controllers/followings";
 import passport from "passport";
 import { ensureLoggedIn } from "./lib/middlewares";
 
@@ -38,5 +39,17 @@ app.delete("/posts/:id/likes", ensureLoggedIn, postsController.deletePostLikes);
 app.get("/accounts/:id", accountsController.getAccount);
 app.get("/accounts/:id/posts", accountsController.getAccountPosts);
 app.get("/accounts/:id/likes", accountsController.getAccountLikes);
+app.get("/accounts/:id/followees", accountsController.getAccountFollowees);
+app.get("/accounts/:id/followers", accountsController.getAccountFollowers);
+app.post(
+  "/followings/follow",
+  ensureLoggedIn,
+  followingsController.postFollowingsFollow
+);
+app.post(
+  "/followings/unfollow",
+  ensureLoggedIn,
+  followingsController.postFollowingsUnfollow
+);
 
 export default app;
