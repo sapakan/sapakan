@@ -119,9 +119,9 @@ describe("POST /followings/follow", () => {
   });
 });
 
-describe("DELETE /followings", () => {
+describe("POST /followings/unfollow", () => {
   test("ログインしていないときは 302 を返す", async () => {
-    const response = await supertest.agent(app).delete("/followings");
+    const response = await supertest.agent(app).post("/followings/unfollow");
     expect(response.statusCode).toEqual(302);
   });
 
@@ -134,7 +134,7 @@ describe("DELETE /followings", () => {
     });
 
     const response = await agent
-      .delete("/followings")
+      .post("/followings/unfollow")
       .type("form")
       .send({ followeeId: followee.id });
 
@@ -162,7 +162,7 @@ describe("DELETE /followings", () => {
     });
 
     await agent
-      .delete("/followings")
+      .post("/followings/unfollow")
       .type("form")
       .send({ followeeId: followee.id });
 
@@ -185,7 +185,7 @@ describe("DELETE /followings", () => {
     });
 
     await agent
-      .delete("/followings")
+      .post("/followings/unfollow")
       .type("form")
       .send({ followeeId: followee.id });
 
@@ -200,7 +200,7 @@ describe("DELETE /followings", () => {
     const agent = await getLoggedInAgent(app);
 
     const response = await agent
-      .delete("/followings")
+      .post("/followings/unfollow")
       .type("form")
       .send({ followeeId: 0 });
     expect(response.statusCode).toEqual(400);
@@ -213,7 +213,7 @@ describe("DELETE /followings", () => {
     const agent = await getLoggedInAgent(app);
 
     const request = await agent
-      .delete("/followings")
+      .post("/followings/unfollow")
       .type("form")
       .send({ followeeId: "a" });
     expect(request.statusCode).toEqual(400);
@@ -225,7 +225,7 @@ describe("DELETE /followings", () => {
     const followee = await accountFactory.create();
 
     const response = await agent
-      .delete("/followings")
+      .post("/followings/unfollow")
       .type("form")
       .send({ followeeId: followee.id });
     expect(response.statusCode).toEqual(400);

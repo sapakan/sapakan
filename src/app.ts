@@ -46,10 +46,10 @@ app.post(
   ensureLoggedIn,
   followingsController.postFollowingsFollow
 );
-app.delete(
-  "/followings",
+app.post(
+  "/followings/unfollow",
   ensureLoggedIn,
-  followingsController.deleteFollowings
+  followingsController.postFollowingsUnfollow
 );
 
 export default app;

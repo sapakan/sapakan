@@ -40,7 +40,7 @@ export const postFollowingsFollow = async (req: Request, res: Response) => {
   res.status(201).json(following);
 };
 
-export const deleteFollowings = async (req: Request, res: Response) => {
+export const postFollowingsUnfollow = async (req: Request, res: Response) => {
   const followeeId = parseIntOrUndefined(req.body.followeeId);
   if (req.body.followeeId === undefined) {
     return res.status(400).json({ message: "followeeId is required" });
