@@ -4,7 +4,7 @@ import assert from "assert";
 import prisma from "../lib/prisma";
 import { createFollowing, deleteFollowing } from "../services/create-following";
 
-export const postFollowings = async (req: Request, res: Response) => {
+export const postFollowingsFollow = async (req: Request, res: Response) => {
   const followeeId = parseIntOrUndefined(req.body.followeeId);
   if (req.body.followeeId === undefined) {
     return res.status(400).json({ message: "followeeId is required" });

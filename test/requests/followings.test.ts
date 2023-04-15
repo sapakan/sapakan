@@ -8,9 +8,9 @@ import { accountFactory, followingFactory } from "../lib/factories";
 import prisma from "../../src/lib/prisma";
 import assert from "assert";
 
-describe("POST /followings", () => {
+describe("POST /followings/follow", () => {
   test("ログインしていないときは 302 を返す", async () => {
-    const response = await supertest.agent(app).post("/followings");
+    const response = await supertest.agent(app).post("/followings/follow");
     expect(response.statusCode).toEqual(302);
   });
 
@@ -19,7 +19,7 @@ describe("POST /followings", () => {
     const followee = await accountFactory.create();
 
     const response = await agent
-      .post("/followings")
+      .post("/followings/follow")
       .type("form")
       .send({ followeeId: followee.id });
 
@@ -42,7 +42,7 @@ describe("POST /followings", () => {
     const followee = await accountFactory.create();
 
     await agent
-      .post("/followings")
+      .post("/followings/follow")
       .type("form")
       .send({ followeeId: followee.id });
     const updatedFollower = await prisma.account.findUnique({
@@ -57,7 +57,7 @@ describe("POST /followings", () => {
     const followee = await accountFactory.create();
 
     await agent
-      .post("/followings")
+      .post("/followings/follow")
       .type("form")
       .send({ followeeId: followee.id });
     const updatedFollowee = await prisma.account.findUnique({
@@ -71,7 +71,7 @@ describe("POST /followings", () => {
     const [agent, account] = await getLoggedInAgentAndAccount(app);
 
     const response = await agent
-      .post("/followings")
+      .post("/followings/follow")
       .type("form")
       .send({ followeeId: 0 });
     expect(response.statusCode).toEqual(400);
@@ -84,7 +84,7 @@ describe("POST /followings", () => {
     const agent = await getLoggedInAgent(app);
 
     const request = await agent
-      .post("/followings")
+      .post("/followings/follow")
       .type("form")
       .send({ followeeId: "a" });
     expect(request.statusCode).toEqual(400);
@@ -95,7 +95,7 @@ describe("POST /followings", () => {
     const [agent, account] = await getLoggedInAgentAndAccount(app);
 
     const response = await agent
-      .post("/followings")
+      .post("/followings/follow")
       .type("form")
       .send({ followeeId: account.id });
     expect(response.statusCode).toEqual(400);
@@ -111,7 +111,7 @@ describe("POST /followings", () => {
     });
 
     const response = await agent
-      .post("/followings")
+      .post("/followings/follow")
       .type("form")
       .send({ followeeId: followee.id });
     expect(response.statusCode).toEqual(400);
