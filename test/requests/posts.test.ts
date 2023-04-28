@@ -184,8 +184,9 @@ describe("GET /posts/:id/likes", () => {
 describe(postsController.getPost, () => {
   test("与えられた ID に対応する投稿の情報を返す", async () => {
     const post = await postFactory.create();
+    const agent = await getLoggedInAgent(app);
 
-    const response = await supertest(app).get(`/posts/${post.id}`);
+    const response = await agent.get(`/posts/${post.id}`);
 
     expect(response.statusCode).toEqual(200);
 
@@ -200,8 +201,36 @@ describe(postsController.getPost, () => {
     );
   });
 
+  test("与えられた ID に対応する投稿の情報を返す（自身がいいねしている）", async () => {
+    const post = await postFactory.create();
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    await likeFactory.create({ postId: post.id, likedById: account.id });
+
+    const response = await agent.get(`/posts/${post.id}`);
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        content: post.content,
+        authorId: post.authorId,
+        isLikedByMe: true,
+      })
+    );
+  });
+
+  test("ログインしていない場合は 302 を返す", async () => {
+    // リクエスト対象の投稿 ID は存在していようが、いなかろうがどちらでもよい
+    const existOrNotExistPostId = 123;
+    const response = await supertest(app).get(
+      `/posts/${existOrNotExistPostId}`
+    );
+
+    expect(response.statusCode).toEqual(302);
+  });
+
   test("与えられた ID に対応する投稿がないときは 404 を返す", async () => {
-    const response = await supertest(app).get(`/posts/0`);
+    const agent = await getLoggedInAgent(app);
+    const response = await agent.get(`/posts/0`);
 
     expect(response.statusCode).toEqual(404);
   });

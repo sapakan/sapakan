@@ -79,10 +79,9 @@ export const getPost = async (req: Request, res: Response) => {
 
   // その投稿を自分でいいねしているかを確認する
 
-  // アカウントの認証などが存在せず、GET リクエストでアカウントの ID を引っ張ってくるのも面倒なので
-  // ひとまず ID が 1 な Account が存在し強制的にそれが主体となるようにする
-  // TODO: 操作の主体が ID が 1 のアカウントになっているのでどうにかする
-  const likedById = 1;
+  const likedById = req.user?.accountId;
+  // 前段に ensureLoggedIn があるためここの likedById が undefined になることはない
+  assert(likedById !== undefined);
 
   const like = await prisma.like.findUnique({
     where: {
