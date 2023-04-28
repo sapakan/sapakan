@@ -68,7 +68,14 @@ export const postPosts = async (req: Request, res: Response) => {
  * GET /posts/:id
  */
 export const getPost = async (req: Request, res: Response) => {
+  if (req.params.id === undefined) {
+    return res.status(400).json({ message: "id is required" });
+  }
   const id = parseInt(req.params.id);
+  if (Number.isNaN(id)) {
+    return res.status(400).json({ message: "id is not an integer" });
+  }
+
   const post = await prisma.post.findUnique({
     where: { id },
     include: { author: true },

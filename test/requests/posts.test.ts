@@ -234,6 +234,19 @@ describe(postsController.getPost, () => {
 
     expect(response.statusCode).toEqual(404);
   });
+
+  describe("不正な ID が与えられた場合は 400 を返す", () => {
+    test("ID が abc のとき", async () => {
+      const agent = await getLoggedInAgent(app);
+      const postId = "abc";
+      const response = await agent.get(`/posts/${postId}`);
+
+      expect(response.statusCode).toEqual(400);
+      expect(response.body).toEqual({
+        message: "id is not an integer",
+      });
+    });
+  });
 });
 
 describe("POST /posts/:id/likes", () => {
