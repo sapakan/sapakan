@@ -1,0 +1,49 @@
+import { getLoggedInAgentAndAccount } from "../lib/get-logged-in-agent";
+import app from "../../src/app";
+import { followingFactory } from "../lib/factories";
+import { postFactory } from "../lib/factories";
+
+describe("GET /timeline", () => {
+  test("自身がフォローしているアカウントの post を取得する", async () => {
+    const [agent, me] = await getLoggedInAgentAndAccount(app);
+
+    // 自身がフォローしているアカウントによる投稿を作成する
+    const followingAccount = await followingFactory.create({
+      followerId: me.id,
+    });
+    const postsByfollowingAccount = await postFactory.createList(2, {
+      authorId: followingAccount.followeeId,
+    });
+
+    // 自身がフォロー **していない** アカウントによる投稿を作成する
+    const postsByNotfollowingAccount = await postFactory.createList(2);
+
+    const response = await agent.get("/timeline");
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toEqual(
+      expect.arrayContaining([
+        // TODO: 新しいのが一番最初に来るように並べ替えられていることを確認する
+
+        // expect.objectContaining({
+        //   id: postsByfollowingAccount[0].id,
+        // }),
+        expect.objectContaining({
+          id: postsByfollowingAccount[1].id,
+        }),
+        expect.objectContaining({
+          id: postsByfollowingAccount[0].id,
+        }),
+      ])
+    );
+    expect(response.body).toEqual(
+      expect.not.arrayContaining([
+        expect.objectContaining({
+          id: postsByNotfollowingAccount[0].id,
+        }),
+        expect.objectContaining({
+          id: postsByNotfollowingAccount[1].id,
+        }),
+      ])
+    );
+  });
+});

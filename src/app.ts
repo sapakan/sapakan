@@ -6,6 +6,7 @@ import * as postsController from "./controllers/posts";
 import * as accountsController from "./controllers/accounts";
 import * as authController from "./controllers/auth";
 import * as followingsController from "./controllers/followings";
+import * as timelineController from "./controllers/timeline";
 import passport from "passport";
 import { ensureLoggedIn } from "./lib/middlewares";
 
@@ -51,5 +52,6 @@ app.post(
   ensureLoggedIn,
   followingsController.postFollowingsUnfollow
 );
+app.get("/timeline", ensureLoggedIn, timelineController.getTimeline);
 
 export default app;
