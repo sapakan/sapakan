@@ -32,7 +32,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", homeController.index);
 app.post("/posts", ensureLoggedIn, postsController.postPosts);
-app.get("/posts/:id", postsController.getPost);
+app.get("/posts/:id", ensureLoggedIn, postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
 app.post("/posts/:id/likes", ensureLoggedIn, postsController.postPostLikes);
 app.delete("/posts/:id/likes", ensureLoggedIn, postsController.deletePostLikes);
