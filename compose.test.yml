@@ -9,6 +9,12 @@ services:
       - 127.0.0.1:${TEST_POSTGRES_PORT:-5433}:5432
     volumes:
       - postgres-data-dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready --username=$${POSTGRES_USER}"]
+      # interval を 10 秒とかにすると、毎度のテスト時にその interval 時間以上待つ必要があるので、短めの 1 秒にする
+      interval: 1s
+      timeout: 5s
+      retries: 3
 
 volumes:
   postgres-data-dev: null
