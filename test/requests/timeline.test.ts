@@ -27,23 +27,17 @@ describe("GET /timeline", () => {
 
     const response = await agent.get("/timeline");
     expect(response.statusCode).toEqual(200);
-    expect(response.body).toEqual(
-      expect.arrayContaining([
-        // TODO: 新しいのが一番最初に来るように並べ替えられていることを確認する
-
-        // expect.objectContaining({
-        //   id: postsByfollowingAccount[0].id,
-        // }),
-        expect.objectContaining({
-          id: postsByfollowingAccount[1].id,
-          likedByMe: false,
-        }),
-        expect.objectContaining({
-          id: postsByfollowingAccount[0].id,
-          likedByMe: true,
-        }),
-      ])
-    );
+    expect(response.body).toStrictEqual([
+      // 新しい投稿が先に来る
+      expect.objectContaining({
+        id: postsByfollowingAccount[1].id,
+        likedByMe: false,
+      }),
+      expect.objectContaining({
+        id: postsByfollowingAccount[0].id,
+        likedByMe: true,
+      }),
+    ]);
     expect(response.body).toEqual(
       expect.not.arrayContaining([
         expect.objectContaining({
