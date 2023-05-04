@@ -1,7 +1,7 @@
 import { getLoggedInAgentAndAccount } from "../lib/get-logged-in-agent";
 import app from "../../src/app";
 import { followingFactory } from "../lib/factories";
-import { postFactory } from "../lib/factories";
+import { postFactory, likeFactory } from "../lib/factories";
 
 describe("GET /timeline", () => {
   test("自身がフォローしているアカウントの post を取得する", async () => {
@@ -13,6 +13,12 @@ describe("GET /timeline", () => {
     });
     const postsByfollowingAccount = await postFactory.createList(2, {
       authorId: followingAccount.followeeId,
+    });
+
+    // 0 番目の投稿だけ自身が like している
+    await likeFactory.create({
+      postId: postsByfollowingAccount[0].id,
+      likedById: me.id,
     });
 
     // 自身がフォロー **していない** アカウントによる投稿を作成する
@@ -29,9 +35,11 @@ describe("GET /timeline", () => {
         // }),
         expect.objectContaining({
           id: postsByfollowingAccount[1].id,
+          likedByMe: false,
         }),
         expect.objectContaining({
           id: postsByfollowingAccount[0].id,
+          likedByMe: true,
         }),
       ])
     );
