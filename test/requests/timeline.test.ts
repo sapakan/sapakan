@@ -2,6 +2,7 @@ import { getLoggedInAgentAndAccount } from "../lib/get-logged-in-agent";
 import app from "../../src/app";
 import { followingFactory } from "../lib/factories";
 import { postFactory, likeFactory } from "../lib/factories";
+import supertest from "supertest";
 
 describe("GET /timeline", () => {
   test("自身がフォローしているアカウントの post を取得する", async () => {
@@ -53,5 +54,11 @@ describe("GET /timeline", () => {
         }),
       ])
     );
+  });
+
+  test("ログインしていない場合は 302 を返す", async () => {
+    const response = await supertest(app).get(`/timeline`);
+
+    expect(response.statusCode).toEqual(302);
   });
 });
