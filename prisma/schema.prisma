@@ -54,7 +54,6 @@ model Post {
   repliesCount Int @default(0)
 
   @@index([authorId, createdAt(sort: Desc)])
-  @@index([followerId])
 }
 
 model Like {
@@ -79,4 +78,5 @@ model Following {
   followerId Int
 
   @@id([followeeId, followerId])
+  @@index([followerId])
 }
