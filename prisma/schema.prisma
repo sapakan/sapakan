@@ -54,6 +54,7 @@ model Post {
   repliesCount Int @default(0)
 
   @@index([authorId, createdAt(sort: Desc)])
+  @@index([followerId])
 }
 
 model Like {
