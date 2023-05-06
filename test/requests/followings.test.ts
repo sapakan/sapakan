@@ -4,7 +4,11 @@ import {
   getLoggedInAgent,
   getLoggedInAgentAndAccount,
 } from "../lib/get-logged-in-agent";
-import { accountFactory, followingFactory } from "../lib/factories";
+import {
+  accountFactory,
+  blockingFactory,
+  followingFactory,
+} from "../lib/factories";
 import prisma from "../../src/lib/prisma";
 import assert from "assert";
 
@@ -116,6 +120,22 @@ describe("POST /followings/follow", () => {
       .send({ followeeId: followee.id });
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({ message: "already followed" });
+  });
+
+  test("ブロックされているユーザーをフォローしようとしたときは 403 を返す", async () => {
+    const [agent, account] = await getLoggedInAgentAndAccount(app);
+    const followee = await accountFactory.create();
+    await blockingFactory.create({
+      blockeeId: account.id,
+      blockerId: followee.id,
+    });
+
+    const response = await agent
+      .post("/followings/follow")
+      .type("form")
+      .send({ followeeId: followee.id });
+    expect(response.statusCode).toEqual(403);
+    expect(response.body).toEqual({ message: "already blocked" });
   });
 });
 

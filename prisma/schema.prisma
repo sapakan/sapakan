@@ -22,6 +22,8 @@ model Account {
   followers     Following[] @relation("AccountFollower")
   followeeCount Int         @default(0)
   followerCount Int         @default(0)
+  blockee       Blocking[]  @relation("AccountBlockee")
+  blocker       Blocking[]  @relation("AccountBlocker")
 }
 
 model User {
@@ -79,4 +81,15 @@ model Following {
 
   @@id([followeeId, followerId])
   @@index([followerId])
+}
+
+model Blocking {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  blockeeId Int
+  blockee   Account  @relation("AccountBlockee", fields: [blockeeId], references: [id])
+  blockerId Int
+  blocker   Account  @relation("AccountBlocker", fields: [blockerId], references: [id])
+
+  @@unique([blockeeId, blockerId])
 }

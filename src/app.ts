@@ -7,6 +7,7 @@ import * as accountsController from "./controllers/accounts";
 import * as authController from "./controllers/auth";
 import * as followingsController from "./controllers/followings";
 import * as timelineController from "./controllers/timeline";
+import * as blockingsController from "./controllers/blockings";
 import passport from "passport";
 import { ensureLoggedIn } from "./lib/middlewares";
 
@@ -53,5 +54,15 @@ app.post(
   followingsController.postFollowingsUnfollow
 );
 app.get("/timeline", ensureLoggedIn, timelineController.getTimeline);
+app.post(
+  "/blockings/block",
+  ensureLoggedIn,
+  blockingsController.postBlockingsBlock
+);
+app.post(
+  "/blockings/unblock",
+  ensureLoggedIn,
+  blockingsController.postBlockingsUnblock
+);
 
 export default app;

@@ -3,6 +3,7 @@ import parseIntOrUndefined from "../lib/parse-int-or-undefined";
 import assert from "assert";
 import prisma from "../lib/prisma";
 import { createFollowing, deleteFollowing } from "../services/create-following";
+import { userAlreadyBlocked } from "./blockings";
 
 export const postFollowingsFollow = async (req: Request, res: Response) => {
   const followeeId = parseIntOrUndefined(req.body.followeeId);
@@ -34,6 +35,11 @@ export const postFollowingsFollow = async (req: Request, res: Response) => {
 
   if (await userAlreadyFollowed(followeeId, followerId)) {
     return res.status(400).json({ message: "already followed" });
+  }
+
+  // フォローしたい人（followee）が自分（follower）をブロックしていたら、自分はフォローできない
+  if (await userAlreadyBlocked(followerId, followeeId)) {
+    return res.status(403).json({ message: "already blocked" });
   }
 
   const following = await createFollowing(followeeId, followerId);
