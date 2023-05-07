@@ -12,9 +12,14 @@ describe("GET /timeline", () => {
     const followingAccount = await followingFactory.create({
       followerId: me.id,
     });
-    const postsByfollowingAccount = await postFactory.createList(2, {
-      authorId: followingAccount.followeeId,
-    });
+    const postsByfollowingAccount = [
+      await postFactory.create({
+        authorId: followingAccount.followeeId,
+      }),
+      await postFactory.create({
+        authorId: followingAccount.followeeId,
+      }),
+    ];
 
     // 0 番目の投稿だけ自身が like している
     await likeFactory.create({
