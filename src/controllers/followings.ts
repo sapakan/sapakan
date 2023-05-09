@@ -39,7 +39,10 @@ export const postFollowingsFollow = async (req: Request, res: Response) => {
 
   // フォローしたい人（followee）が自分（follower）をブロックしていたら、自分はフォローできない
   if (await userAlreadyBlocked(followerId, followeeId)) {
-    return res.status(403).json({ message: "already blocked" });
+    return res.status(403).json({
+      message:
+        "You can't follow the given account because you are blocked by them.",
+    });
   }
 
   const following = await createFollowing(followeeId, followerId);

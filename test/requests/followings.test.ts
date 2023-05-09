@@ -135,7 +135,10 @@ describe("POST /followings/follow", () => {
       .type("form")
       .send({ followeeId: followee.id });
     expect(response.statusCode).toEqual(403);
-    expect(response.body).toEqual({ message: "already blocked" });
+    expect(response.body).toEqual({
+      message:
+        "You can't follow the given account because you are blocked by them.",
+    });
   });
 });
 
