@@ -5,13 +5,13 @@ import assert from "assert";
 import { createBlocking, deleteBlocking } from "../services/create-blocking";
 
 export const postBlockingsBlock = async (req: Request, res: Response) => {
-  // targetId: 自身がブロックしたい対象 Account の ID
-  const targetId = parseIntOrUndefined(req.body.targetId);
-  if (req.body.targetId === undefined) {
-    return res.status(400).json({ message: "targetId is required" });
+  // blockeeId: 自身がブロックしたい対象 Account の ID
+  const blockeeId = parseIntOrUndefined(req.body.blockeeId);
+  if (req.body.blockeeId === undefined) {
+    return res.status(400).json({ message: "blockeeId is required" });
   }
-  if (targetId === undefined) {
-    return res.status(400).json({ message: "targetId is not an integer" });
+  if (blockeeId === undefined) {
+    return res.status(400).json({ message: "blockeeId is not an integer" });
   }
 
   // 前段に ensureLoggedIn があるためここの blockerId が undefined になることはない
@@ -19,13 +19,13 @@ export const postBlockingsBlock = async (req: Request, res: Response) => {
   assert(blockerId !== undefined);
 
   // 自分自身をブロックできないようにする
-  if (targetId === blockerId) {
+  if (blockeeId === blockerId) {
     return res.status(400).json({ message: "cannot block yourself" });
   }
 
   // ブロック対象の ID に対応するアカウントの存在確認
   const target = await prisma.account.findUnique({
-    where: { id: targetId },
+    where: { id: blockeeId },
   });
 
   if (target === null) {
@@ -34,22 +34,22 @@ export const postBlockingsBlock = async (req: Request, res: Response) => {
       .json({ message: "blockee with the given id is not found" });
   }
 
-  if (await userAlreadyBlocked(targetId, blockerId)) {
+  if (await userAlreadyBlocked(blockeeId, blockerId)) {
     return res.status(400).json({ message: "already blocked" });
   }
 
-  const blocking = await createBlocking(targetId, blockerId);
+  const blocking = await createBlocking(blockeeId, blockerId);
   res.status(201).json(blocking);
 };
 
 export const postBlockingsUnblock = async (req: Request, res: Response) => {
-  // targetId: 自身がブロック解除したい対象 Account の ID
-  const targetId = parseIntOrUndefined(req.body.targetId);
-  if (req.body.targetId === undefined) {
-    return res.status(400).json({ message: "targetId is required" });
+  // blockeeId: 自身がブロック解除したい対象 Account の ID
+  const blockeeId = parseIntOrUndefined(req.body.blockeeId);
+  if (req.body.blockeeId === undefined) {
+    return res.status(400).json({ message: "blockeeId is required" });
   }
-  if (targetId === undefined) {
-    return res.status(400).json({ message: "targetId is not an integer" });
+  if (blockeeId === undefined) {
+    return res.status(400).json({ message: "blockeeId is not an integer" });
   }
 
   // 前段に ensureLoggedIn があるためここの blockerId が undefined になることはない
@@ -58,7 +58,7 @@ export const postBlockingsUnblock = async (req: Request, res: Response) => {
 
   // ブロック対象の ID に対応するアカウントの存在確認
   const target = await prisma.account.findUnique({
-    where: { id: targetId },
+    where: { id: blockeeId },
   });
 
   if (target === null) {
@@ -67,11 +67,11 @@ export const postBlockingsUnblock = async (req: Request, res: Response) => {
       .json({ message: "blockee with the given id is not found" });
   }
 
-  if (!(await userAlreadyBlocked(targetId, blockerId))) {
+  if (!(await userAlreadyBlocked(blockeeId, blockerId))) {
     return res.status(400).json({ message: "not blocked" });
   }
 
-  const blocking = await deleteBlocking(targetId, blockerId);
+  const blocking = await deleteBlocking(blockeeId, blockerId);
   res.status(201).json(blocking);
 };
 

@@ -28,7 +28,7 @@ describe("POST /blockings/block", () => {
     const response = await agent
       .post("/blockings/block")
       .type("form")
-      .send({ targetId: blockee.id });
+      .send({ blockeeId: blockee.id });
 
     expect(response.statusCode).toEqual(201);
     const blocking = await prisma.blocking.findUnique({
@@ -56,7 +56,7 @@ describe("POST /blockings/block", () => {
     const response = await agent
       .post("/blockings/block")
       .type("form")
-      .send({ targetId: blockee.id });
+      .send({ blockeeId: blockee.id });
 
     expect(response.statusCode).toEqual(201);
     const followingMeToBlockee = await prisma.following.findUnique({
@@ -82,7 +82,7 @@ describe("POST /blockings/block", () => {
     const response = await agent
       .post("/blockings/block")
       .type("form")
-      .send({ targetId: blockee.id });
+      .send({ blockeeId: blockee.id });
 
     expect(response.statusCode).toEqual(201);
     const followingBlockeeToMe = await prisma.following.findUnique({
@@ -103,7 +103,7 @@ describe("POST /blockings/block", () => {
     const response = await agent
       .post("/blockings/block")
       .type("form")
-      .send({ targetId: notExistingAccountId });
+      .send({ blockeeId: notExistingAccountId });
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({
       message: "blockee with the given id is not found",
@@ -117,9 +117,9 @@ describe("POST /blockings/block", () => {
     const request = await agent
       .post("/blockings/block")
       .type("form")
-      .send({ targetId: invalidAccountId });
+      .send({ blockeeId: invalidAccountId });
     expect(request.statusCode).toEqual(400);
-    expect(request.body).toEqual({ message: "targetId is not an integer" });
+    expect(request.body).toEqual({ message: "blockeeId is not an integer" });
   });
 
   test("与えられた ID のユーザーが自分自身のときは 400 を返す", async () => {
@@ -128,7 +128,7 @@ describe("POST /blockings/block", () => {
     const response = await agent
       .post("/blockings/block")
       .type("form")
-      .send({ targetId: me.id });
+      .send({ blockeeId: me.id });
 
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({ message: "cannot block yourself" });
@@ -145,7 +145,7 @@ describe("POST /blockings/block", () => {
     const response = await agent
       .post("/blockings/block")
       .type("form")
-      .send({ targetId: blockee.id });
+      .send({ blockeeId: blockee.id });
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({ message: "already blocked" });
   });
@@ -169,7 +169,7 @@ describe("POST /blockings/unblock", () => {
     const response = await agent
       .post("/blockings/unblock")
       .type("form")
-      .send({ targetId: blockee.id });
+      .send({ blockeeId: blockee.id });
 
     expect(response.statusCode).toEqual(201);
     const blocking = await prisma.blocking.findUnique({
@@ -190,7 +190,7 @@ describe("POST /blockings/unblock", () => {
     const response = await agent
       .post("/blockings/unblock")
       .type("form")
-      .send({ targetId: notExistingAccountId });
+      .send({ blockeeId: notExistingAccountId });
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({
       message: "blockee with the given id is not found",
@@ -204,9 +204,9 @@ describe("POST /blockings/unblock", () => {
     const request = await agent
       .post("/blockings/unblock")
       .type("form")
-      .send({ targetId: invalidAccountId });
+      .send({ blockeeId: invalidAccountId });
     expect(request.statusCode).toEqual(400);
-    expect(request.body).toEqual({ message: "targetId is not an integer" });
+    expect(request.body).toEqual({ message: "blockeeId is not an integer" });
   });
 
   test("ブロックしていないユーザーをブロック解除しようとしたときは 400 を返す", async () => {
@@ -216,7 +216,7 @@ describe("POST /blockings/unblock", () => {
     const response = await agent
       .post("/blockings/unblock")
       .type("form")
-      .send({ targetId: blockee.id });
+      .send({ blockeeId: blockee.id });
     expect(response.statusCode).toEqual(400);
     expect(response.body).toEqual({ message: "not blocked" });
   });
