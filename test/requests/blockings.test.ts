@@ -53,6 +53,10 @@ describe("POST /blockings/block", () => {
       followeeId: blockee.id,
     });
 
+    // ここで、
+    // blockee の followerCount は 1
+    // me の followeeCount は 1
+
     const response = await agent
       .post("/blockings/block")
       .type("form")
@@ -68,6 +72,17 @@ describe("POST /blockings/block", () => {
       },
     });
     assert(followingMeToBlockee === null);
+
+    // フォロー関係の削除と同時に followerCount と followeeCount もデクリメントされていることを確認
+    const blockeeAfterBlock = await prisma.account.findUnique({
+      where: { id: blockee.id },
+    });
+    assert(blockeeAfterBlock?.followerCount === 0);
+
+    const meAfterBlock = await prisma.account.findUnique({
+      where: { id: me.id },
+    });
+    assert(meAfterBlock?.followeeCount === 0);
   });
 
   test("既にフォローされているユーザーをブロックするとフォロー関係が消える", async () => {
@@ -94,6 +109,16 @@ describe("POST /blockings/block", () => {
       },
     });
     assert(followingBlockeeToMe === null);
+
+    const blockeeAfterBlock = await prisma.account.findUnique({
+      where: { id: blockee.id },
+    });
+    assert(blockeeAfterBlock?.followeeCount === 0);
+
+    const meAfterBlock = await prisma.account.findUnique({
+      where: { id: me.id },
+    });
+    assert(meAfterBlock?.followerCount === 0);
   });
 
   test("与えられた ID のユーザーが存在しないときは 400 を返す", async () => {
