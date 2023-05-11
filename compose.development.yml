@@ -1,6 +1,6 @@
 services:
   test_db:
-    image: postgres:15.2-bullseye
+    image: postgres:15.3-bullseye
     environment:
       POSTGRES_USER: ${DEVELOPMENT_POSTGRES_USER:-sapakan_dev}
       POSTGRES_PASSWORD: ${DEVELOPMENT_POSTGRES_PASSWORD:-sapadev}
