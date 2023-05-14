@@ -8,6 +8,7 @@ import * as authController from "./controllers/auth";
 import * as followingsController from "./controllers/followings";
 import * as timelineController from "./controllers/timeline";
 import * as blockingsController from "./controllers/blockings";
+import * as nodeInfoController from "./controllers/nodeinfo";
 import passport from "passport";
 import { ensureLoggedIn } from "./lib/middlewares";
 
@@ -64,5 +65,6 @@ app.post(
   ensureLoggedIn,
   blockingsController.postBlockingsUnblock
 );
+app.get("/nodeinfo/2.1", nodeInfoController.getNodeInfoSchema2_1);
 
 export default app;
