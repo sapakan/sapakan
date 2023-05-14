@@ -1,5 +1,22 @@
 import supertest from "supertest";
 import app from "../../src/app";
+import { config } from "../../src/config";
+
+describe("GET /.well-known/nodeinfo", () => {
+  test("NodeInfo エンドポイントの一覧を取得する", async () => {
+    const response = await supertest(app).get("/.well-known/nodeinfo");
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toEqual({
+      links: [
+        {
+          rel: "http://nodeinfo.diaspora.software/ns/schema/2.1",
+          href: `${config.url}/nodeinfo/2.1`,
+        },
+      ],
+    });
+  });
+});
 
 describe("GET /nodeinfo/2.1", () => {
   test("NodeInfo protocol 2.1 に従う内容を取得する", async () => {

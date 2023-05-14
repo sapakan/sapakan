@@ -3,6 +3,34 @@ import prisma from "../lib/prisma";
 import { config } from "../config";
 
 /**
+ * GET /.well-known/nodeinfo
+ * https://nodeinfo.diaspora.software/protocol.html
+ */
+export const getWellKnownNodeInfo = async (req: Request, res: Response) => {
+  // https://nodeinfo.diaspora.software/protocol.html の Example
+  type WellKnownNodeInfo = {
+    links: [
+      {
+        rel: string;
+        href: string;
+      }
+    ];
+  };
+
+  const wellKnownNodeInfo: WellKnownNodeInfo = {
+    links: [
+      {
+        rel: "http://nodeinfo.diaspora.software/ns/schema/2.1",
+        href: `${config.url}/nodeinfo/2.1`,
+      },
+      // Schema 2.1 の /nodeinfo/2.1 以外に /nodeinfo/2.0 なども用意している場合はここに追加する
+    ],
+  };
+
+  res.status(200).json(wellKnownNodeInfo);
+};
+
+/**
  * GET /nodeinfo/2.1
  * NodeInfo protocol 2.1 に従う
  * https://nodeinfo.diaspora.software/protocol.html

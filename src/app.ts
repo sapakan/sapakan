@@ -34,6 +34,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", homeController.index);
+
+// .well-known
+app.get("/.well-known/nodeinfo", nodeInfoController.getWellKnownNodeInfo);
+
 app.post("/posts", ensureLoggedIn, postsController.postPosts);
 app.get("/posts/:id", ensureLoggedIn, postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
