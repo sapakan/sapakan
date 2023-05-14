@@ -1,4 +1,12 @@
-import { Account, Following, Like, Post, Prisma, User } from "@prisma/client";
+import {
+  Account,
+  Blocking,
+  Following,
+  Like,
+  Post,
+  Prisma,
+  User,
+} from "@prisma/client";
 import prisma from "../../src/lib/prisma";
 import { Factory } from "fishery";
 import { createLike } from "../../src/services/create-like";
@@ -6,6 +14,7 @@ import assert from "assert";
 import { createPost } from "../../src/services/create-post";
 import { randomUUID } from "crypto";
 import { createFollowing } from "../../src/services/create-following";
+import { createBlocking } from "../../src/services/create-blocking";
 
 const ID_UNASSIGNED = -1;
 /**
@@ -120,5 +129,35 @@ export const followingFactory = Factory.define<
   return {
     followerId: ID_UNASSIGNED,
     followeeId: ID_UNASSIGNED,
+  };
+});
+
+export const blockingFactory = Factory.define<
+  Prisma.BlockingCreateArgs["data"],
+  never,
+  Blocking
+>(({ onCreate }) => {
+  onCreate(async (blocking) => {
+    if (
+      blocking.blockerId === undefined ||
+      blocking.blockerId === ID_UNASSIGNED
+    ) {
+      const account = await accountFactory.create();
+      blocking.blockerId = account.id;
+    }
+    if (
+      blocking.blockeeId === undefined ||
+      blocking.blockeeId === ID_UNASSIGNED
+    ) {
+      const account = await accountFactory.create();
+      blocking.blockeeId = account.id;
+    }
+
+    return createBlocking(blocking.blockeeId, blocking.blockerId);
+  });
+
+  return {
+    blockerId: ID_UNASSIGNED,
+    blockeeId: ID_UNASSIGNED,
   };
 });
