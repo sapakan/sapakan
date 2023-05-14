@@ -53,4 +53,32 @@ describe("GET /nodeinfo/2.1", () => {
       metadata: {},
     });
   });
+
+  test("リクエストの accept ヘッダーが正しく指定されていなくても内容を取得できる", async () => {
+    // リクエストの accept: application/json は SHOULD である
+    // これを付けないリクエストも想定し、正しく内容を取得できることを確認しておく
+    const response = await supertest(app).get("/nodeinfo/2.1");
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.headers["content-type"]).toEqual(
+      `application/json; charset=utf-8; profile="http://nodeinfo.diaspora.software/ns/schema/2.1#"`
+    );
+    expect(response.body).toEqual({
+      version: "2.1",
+      software: {
+        name: expect.any(String),
+        version: expect.any(String),
+      },
+      protocols: ["activitypub"],
+      services: {},
+      openRegistrations: true,
+      usage: {
+        users: {
+          total: expect.any(Number),
+        },
+        localPosts: expect.any(Number),
+      },
+      metadata: {},
+    });
+  });
 });
