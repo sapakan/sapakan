@@ -1,6 +1,6 @@
 services:
   test_db:
-    image: postgres:15.2-bullseye
+    image: postgres:15.3-bullseye
     environment:
       POSTGRES_USER: ${TEST_POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${TEST_POSTGRES_PASSWORD:-password}
