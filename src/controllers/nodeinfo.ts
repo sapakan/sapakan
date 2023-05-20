@@ -52,7 +52,10 @@ export const getNodeInfoSchema2_1 = async (req: Request, res: Response) => {
     };
     protocols: string[];
     // 子の key: value を持たない単純な 'services: {}' だけが欲しい
-    services: Record<never, never>;
+    services: {
+      inbound: string[];
+      outbound: string[];
+    };
     openRegistrations: boolean;
     usage: {
       users: {
@@ -78,7 +81,11 @@ export const getNodeInfoSchema2_1 = async (req: Request, res: Response) => {
       version: config.version,
     },
     protocols: ["activitypub"],
-    services: {},
+    services: {
+      // 3rd party な何かは提供していないので長さ 0 の配列にする
+      inbound: [],
+      outbound: [],
+    },
     openRegistrations: true,
     usage: {
       users: {

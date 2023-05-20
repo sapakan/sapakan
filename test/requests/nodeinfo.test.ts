@@ -42,7 +42,10 @@ describe("GET /nodeinfo/2.1", () => {
         version: expect.any(String),
       },
       protocols: ["activitypub"],
-      services: {},
+      services: {
+        inbound: [],
+        outbound: [],
+      },
       openRegistrations: true,
       usage: {
         users: {
@@ -70,7 +73,10 @@ describe("GET /nodeinfo/2.1", () => {
         version: expect.any(String),
       },
       protocols: ["activitypub"],
-      services: {},
+      services: {
+        inbound: [],
+        outbound: [],
+      },
       openRegistrations: true,
       usage: {
         users: {
