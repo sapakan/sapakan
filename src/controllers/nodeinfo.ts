@@ -51,7 +51,6 @@ export const getNodeInfoSchema2_1 = async (req: Request, res: Response) => {
       homepage?: string;
     };
     protocols: string[];
-    // 子の key: value を持たない単純な 'services: {}' だけが欲しい
     services: {
       inbound: string[];
       outbound: string[];
