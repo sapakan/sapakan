@@ -1,4 +1,20 @@
 services:
+  sapakan.local:
+    image: sapakan
+    environment:
+      DEVELOPMENT_POSTGRES_USER: sapakan_dev
+      DEVELOPMENT_POSTGRES_PASSWORD: sapadev
+      DEVELOPMENT_POSTGRES_DB: sapakan_development
+      DEVELOPMENT_POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql://sapakan_dev:sapadev@test_db:5432/sapakan_development
+      PORT: 80
+      SAPAKAN_URL: http://sapakan.local/
+    ports:
+      - 5000:80
+    networks:
+      - fediverse
+      - sapakan_internal
+
   test_db:
     image: postgres:15.3-bullseye
     environment:
@@ -9,6 +25,73 @@ services:
       - 127.0.0.1:${DEVELOPMENT_POSTGRES_PORT:-5434}:5432
     volumes:
       - postgres-data-dev:/var/lib/postgresql/data
+    networks:
+      - sapakan_internal
+
+  # 連合をテストするための Pleroma インスタンスのための設定
+  pleroma_db:
+    image: postgres:12.1-alpine
+    container_name: pleroma_db
+    restart: always
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "pleroma"]
+    environment:
+      POSTGRES_USER: pleroma
+      POSTGRES_PASSWORD: pleroma
+      POSTGRES_DB: pleroma
+    volumes:
+      - postgres-pleroma:/var/lib/postgresql/data
+    networks:
+      - pleroma_internal
+
+  pleroma.local:
+    image: pleroma
+    container_name: pleroma_web
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q --spider --proxy=off localhost:4000 || exit 1",
+        ]
+    restart: always
+    build:
+      context: .
+      # Feel free to remove or override this section
+      # See 'Build-time variables' in README.md
+      args:
+        - "UID=1000"
+        - "GID=1000"
+        - "PLEROMA_VER=v2.4.2"
+    volumes:
+      - pleroma-uploads:/var/lib/pleroma/uploads
+      - pleroma-static:/var/lib/pleroma/static
+      - ./pleroma/config.exs:/etc/pleroma/config.exs:ro
+    ports:
+      - 5001:80
+    networks:
+      - fediverse
+      - pleroma_internal
+    environment:
+      DOMAIN: pleroma.local
+      INSTANCE_NAME: Pleroma1
+      ADMIN_EMAIL: admin@example.com
+      NOTIFY_EMAIL: notify@example.com
+      DB_USER: pleroma
+      DB_PASS: pleroma
+      DB_NAME: pleroma
+      DB_HOST: pleroma_db
+    depends_on:
+      - pleroma_db
+
 
 volumes:
   postgres-data-dev: null
+  postgres-pleroma:
+  pleroma-uploads:
+  pleroma-static:
+
+networks:
+  fediverse:
+  pleroma_internal:
+    internal: true
+  sapakan_internal:
