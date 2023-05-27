@@ -41,7 +41,7 @@ app.get("/.well-known/nodeinfo", nodeInfoController.getWellKnownNodeInfo);
 app.get("/.well-known/webfinger", webFingerController.getWellKnownWebFinger);
 
 app.post("/posts", ensureLoggedIn, postsController.postPosts);
-app.get("/posts/:id", ensureLoggedIn, postsController.getPost);
+app.get("/posts/:id", postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
 app.post("/posts/:id/likes", ensureLoggedIn, postsController.postPostLikes);
 app.delete("/posts/:id/likes", ensureLoggedIn, postsController.deletePostLikes);

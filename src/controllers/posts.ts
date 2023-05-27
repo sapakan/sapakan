@@ -4,6 +4,9 @@ import { createLike, deleteLike } from "../services/create-like";
 import { createPost } from "../services/create-post";
 import assert from "assert";
 import parseIntOrUndefined from "../lib/parse-int-or-undefined";
+import { Post } from "@prisma/client";
+import { config } from "../config";
+import { Note } from "../@types/activitystreams";
 
 /**
  * POST /posts
@@ -84,28 +87,40 @@ export const getPost = async (req: Request, res: Response) => {
     return res.status(404).json({ message: "not found" });
   }
 
-  // その投稿を自分でいいねしているかを確認する
+  if (
+    req.accepts("application/json", "application/activity+json") ==
+    "application/activity+json"
+  ) {
+    return res
+      .status(200)
+      .contentType("application/activity+json")
+      .json(translateToAPNote(post));
+  }
+
+  // ログイン中の場合はその投稿に対して自分がいいねしているかどうかを返す
 
   const likedById = req.user?.accountId;
-  // 前段に ensureLoggedIn があるためここの likedById が undefined になることはない
-  assert(likedById !== undefined);
-
-  const like = await prisma.like.findUnique({
-    where: {
-      postId_likedById: {
-        postId: id,
-        likedById,
+  if (likedById !== undefined) {
+    const like = await prisma.like.findUnique({
+      where: {
+        postId_likedById: {
+          postId: id,
+          likedById,
+        },
       },
-    },
-  });
+    });
 
-  const isLikedByMe = Boolean(like);
+    const isLikedByMe = Boolean(like);
 
-  const resBody = {
-    ...post,
-    isLikedByMe,
-  };
-  res.status(200).json(resBody);
+    const resBody = {
+      ...post,
+      isLikedByMe,
+    };
+
+    return res.status(200).json(resBody);
+  }
+
+  return res.status(200).json(post);
 };
 
 /**
@@ -206,4 +221,34 @@ function userAlreadyLiked(postId: number, likedById: number): Promise<boolean> {
       },
     })
     .then((like) => like !== null);
+}
+
+/**
+ * 与えられた Post を ActivityPub の Note オブジェクトに変換します。
+ * Post は content を持つ必要があります。
+ */
+function translateToAPNote(post: Post): Note {
+  assert(post.content !== null);
+
+  return {
+    actor: `${config.url}/accounts/${post.authorId}`,
+    published: post.createdAt.toISOString(),
+    source: { content: post.content, mediaType: "text/plain" },
+    summary: "",
+    "@context": "https://www.w3.org/ns/activitystreams",
+    type: "Note",
+    id: `${config.url}/posts/${post.id}`,
+    content: post.content,
+    attributedTo: `${config.url}/accounts/${post.authorId}`,
+    to: ["https://www.w3.org/ns/activitystreams#Public"],
+    cc: [],
+    url: translatePostIdToURL(post.id),
+    inReplyTo: post.replyToId
+      ? translatePostIdToURL(post.replyToId)
+      : undefined,
+  };
+}
+
+function translatePostIdToURL(postId: number): string {
+  return `${config.url}/posts/${postId}`;
 }
