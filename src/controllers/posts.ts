@@ -6,6 +6,7 @@ import assert from "assert";
 import parseIntOrUndefined from "../lib/parse-int-or-undefined";
 import { Post } from "@prisma/client";
 import { config } from "../config";
+import { Note } from "../@types/activitystreams";
 
 /**
  * POST /posts
@@ -222,31 +223,12 @@ function userAlreadyLiked(postId: number, likedById: number): Promise<boolean> {
     .then((like) => like !== null);
 }
 
-type APNote = {
-  "@context": "https://www.w3.org/ns/activitystreams";
-  type: "Note";
-  id: string;
-  content: string;
-  published: string;
-  source: {
-    content: string;
-    mediaType: string;
-  };
-  summary: "";
-  actor: string;
-  attributedTo: string;
-  to: string[];
-  cc: string[];
-  url: string;
-  inReplyTo: string | undefined;
-};
-
 /**
  * 与えられた Post を ActivityPub の Note オブジェクトに変換します。
  * Post は content を持つ必要があります。
  * @param post
  */
-function translateToAPNote(post: Post): APNote {
+function translateToAPNote(post: Post): Note {
   assert(post.content !== null);
 
   return {
