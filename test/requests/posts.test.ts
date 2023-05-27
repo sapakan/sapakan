@@ -1,13 +1,7 @@
 import { Like } from "@prisma/client";
-import httpMocks from "node-mocks-http";
 import * as postsController from "../../src/controllers/posts";
 import prisma from "../../src/lib/prisma";
-import {
-  accountFactory,
-  postFactory,
-  likeFactory,
-  userFactory,
-} from "../lib/factories";
+import { accountFactory, postFactory, likeFactory } from "../lib/factories";
 import supertest from "supertest";
 import app from "../../src/app";
 import {
@@ -15,6 +9,7 @@ import {
   getLoggedInAgentAndAccount,
 } from "../lib/get-logged-in-agent";
 import { toJSONObject } from "../lib/to-json-object";
+import { config } from "../../src/config";
 
 describe("POST /posts", () => {
   test("与えられた content に基いて投稿を作成する", async () => {
@@ -201,6 +196,31 @@ describe(postsController.getPost, () => {
     );
   });
 
+  test("Accept: application/activity+json のとき、Note オブジェクトを返す", async () => {
+    const post = await postFactory.create();
+    const response = await supertest(app)
+      .get(`/posts/${post.id}`)
+      .set("Accept", "application/activity+json");
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        "@context": "https://www.w3.org/ns/activitystreams",
+        id: `${config.url}/posts/${post.id}`,
+        type: "Note",
+        content: post.content,
+        attributedTo: `${config.url}/accounts/${post.authorId}`,
+        to: ["https://www.w3.org/ns/activitystreams#Public"],
+        cc: [],
+        url: expect.stringContaining(String(post.id)),
+        actor: `${config.url}/accounts/${post.authorId}`,
+        published: post.createdAt.toISOString(),
+        source: { content: post.content, mediaType: "text/plain" },
+        summary: "",
+      })
+    );
+  });
+
   test("与えられた ID に対応する投稿の情報を返す（自身がいいねしている）", async () => {
     const post = await postFactory.create();
     const [agent, account] = await getLoggedInAgentAndAccount(app);
@@ -218,14 +238,19 @@ describe(postsController.getPost, () => {
     );
   });
 
-  test("ログインしていない場合は 302 を返す", async () => {
-    // リクエスト対象の投稿 ID は存在していようが、いなかろうがどちらでもよい
-    const existOrNotExistPostId = 123;
-    const response = await supertest(app).get(
-      `/posts/${existOrNotExistPostId}`
+  test("ログインしていない場合は isLikedByMe を返さない", async () => {
+    const post = await postFactory.create();
+    const response = await supertest(app).get(`/posts/${post.id}`);
+
+    expect(response.statusCode).toEqual(200);
+    expect(response.body).toEqual(
+      expect.objectContaining({
+        content: post.content,
+        authorId: post.authorId,
+      })
     );
 
-    expect(response.statusCode).toEqual(302);
+    expect(response.body).not.toHaveProperty("isLikedByMe");
   });
 
   test("与えられた ID に対応する投稿がないときは 404 を返す", async () => {
