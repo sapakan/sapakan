@@ -9,6 +9,7 @@ import * as followingsController from "./controllers/followings";
 import * as timelineController from "./controllers/timeline";
 import * as blockingsController from "./controllers/blockings";
 import * as nodeInfoController from "./controllers/nodeinfo";
+import * as webFingerController from "./controllers/webfinger";
 import passport from "passport";
 import { ensureLoggedIn } from "./lib/middlewares";
 
@@ -37,6 +38,7 @@ app.get("/", homeController.index);
 
 // .well-known
 app.get("/.well-known/nodeinfo", nodeInfoController.getWellKnownNodeInfo);
+app.get("/.well-known/webfinger", webFingerController.getWellKnownWebFinger);
 
 app.post("/posts", ensureLoggedIn, postsController.postPosts);
 app.get("/posts/:id", ensureLoggedIn, postsController.getPost);
