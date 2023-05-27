@@ -4,34 +4,36 @@ import type { Person } from "../@types/activitystreams";
 import { config } from "../config";
 
 /**
- * GET /accounts/:id
+ * GET /accounts/:username
  */
 export const getAccount = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
-
+  const username = req.params.username;
   if (
     req.accepts("application/json", "application/activity+json") ==
     "application/activity+json"
   ) {
-    return getAccountWithAcceptActivityJson(res, id);
+    return getAccountWithAcceptActivityJson(res, username);
   }
 
-  const account = await prisma.account.findUnique({ where: { id } });
+  const account = await prisma.account.findUnique({ where: { username } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
   res.status(200).json(account);
 };
 
-const getAccountWithAcceptActivityJson = async (res: Response, id: number) => {
-  const account = await prisma.account.findUnique({ where: { id } });
+const getAccountWithAcceptActivityJson = async (
+  res: Response,
+  username: string
+) => {
+  const account = await prisma.account.findUnique({ where: { username } });
   if (account === null) {
     return res.status(404).send();
   }
 
   const resBody: Person = {
     "@context": "https://www.w3.org/ns/activitystreams",
-    id: `${config.url}/accounts/${account.id}`,
+    id: `${config.url}/accounts/${account.username}`,
     type: "Person",
     preferredUsername: account.username,
   };
@@ -39,21 +41,20 @@ const getAccountWithAcceptActivityJson = async (res: Response, id: number) => {
 };
 
 /**
- * GET /accounts/:id/likes
+ * GET /accounts/:username/likes
  */
 export const getAccountLikes = async (req: Request, res: Response) => {
-  const id = parseInt(req.params.id);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({ message: "id is not an integer" });
-  }
-  const account = await prisma.account.findUnique({ where: { id } });
+  const username = req.params.username;
+  const account = await prisma.account.findUnique({ where: { username } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
 
   const likes = await prisma.like.findMany({
     where: {
-      likedById: id,
+      likedBy: {
+        username: username,
+      },
     },
     include: {
       likedBy: true,
@@ -65,17 +66,15 @@ export const getAccountLikes = async (req: Request, res: Response) => {
 };
 
 /**
- * GET /accounts/:id/posts
+ * GET /accounts/:username/posts
  */
 export const getAccountPosts = async (req: Request, res: Response) => {
-  if (req.params.id === undefined) {
-    return res.status(400).json({ message: "id is required" });
+  const username = req.params.username;
+  if (username === undefined) {
+    return res.status(400).json({ message: "username is required" });
   }
-  const id = parseInt(req.params.id);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({ message: "id is not an integer" });
-  }
-  const account = await prisma.account.findUnique({ where: { id } });
+
+  const account = await prisma.account.findUnique({ where: { username } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
@@ -85,7 +84,9 @@ export const getAccountPosts = async (req: Request, res: Response) => {
 
   const posts = await prisma.post.findMany({
     where: {
-      authorId: id,
+      author: {
+        username: username,
+      },
       replyToId: includeReplies ? {} : null,
       repostToId: includeReposts ? {} : null,
     },
@@ -97,24 +98,24 @@ export const getAccountPosts = async (req: Request, res: Response) => {
 };
 
 /**
- * GET /accounts/:id/followees
+ * GET /accounts/:username/followees
  */
 export const getAccountFollowees = async (req: Request, res: Response) => {
-  if (req.params.id === undefined) {
-    return res.status(400).json({ message: "id is required" });
+  const username = req.params.username;
+  if (username === undefined) {
+    return res.status(400).json({ message: "username is required" });
   }
-  const id = parseInt(req.params.id);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({ message: "id is not an integer" });
-  }
-  const account = await prisma.account.findUnique({ where: { id } });
+
+  const account = await prisma.account.findUnique({ where: { username } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
 
   const followees = await prisma.following.findMany({
     where: {
-      followerId: id,
+      follower: {
+        username: username,
+      },
     },
     include: {
       followee: true,
@@ -124,24 +125,24 @@ export const getAccountFollowees = async (req: Request, res: Response) => {
 };
 
 /**
- * GET /accounts/:id/followers
+ * GET /accounts/:username/followers
  */
 export const getAccountFollowers = async (req: Request, res: Response) => {
-  if (req.params.id === undefined) {
-    return res.status(400).json({ message: "id is required" });
+  const username = req.params.username;
+  if (username === undefined) {
+    return res.status(400).json({ message: "username is required" });
   }
-  const id = parseInt(req.params.id);
-  if (Number.isNaN(id)) {
-    return res.status(400).json({ message: "id is not an integer" });
-  }
-  const account = await prisma.account.findUnique({ where: { id } });
+
+  const account = await prisma.account.findUnique({ where: { username } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
 
   const followers = await prisma.following.findMany({
     where: {
-      followeeId: id,
+      followee: {
+        username: username,
+      },
     },
     include: {
       follower: true,
