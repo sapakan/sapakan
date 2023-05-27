@@ -8,6 +8,7 @@ import * as authController from "./controllers/auth";
 import * as followingsController from "./controllers/followings";
 import * as timelineController from "./controllers/timeline";
 import * as blockingsController from "./controllers/blockings";
+import * as nodeInfoController from "./controllers/nodeinfo";
 import passport from "passport";
 import { ensureLoggedIn } from "./lib/middlewares";
 
@@ -33,6 +34,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", homeController.index);
+
+// .well-known
+app.get("/.well-known/nodeinfo", nodeInfoController.getWellKnownNodeInfo);
+
 app.post("/posts", ensureLoggedIn, postsController.postPosts);
 app.get("/posts/:id", ensureLoggedIn, postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
@@ -64,5 +69,6 @@ app.post(
   ensureLoggedIn,
   blockingsController.postBlockingsUnblock
 );
+app.get("/nodeinfo/2.1", nodeInfoController.getNodeInfoSchema2_1);
 
 export default app;
