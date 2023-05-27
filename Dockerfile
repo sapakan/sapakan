@@ -1,4 +1,4 @@
-FROM node:18
+FROM node:20
 
 # Installing postgresql-client for waiting the DB to be ready
 RUN apt-get update \
