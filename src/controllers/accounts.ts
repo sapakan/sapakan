@@ -9,7 +9,10 @@ import { config } from "../config";
 export const getAccount = async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
 
-  if (req.headers.accept === "application/activity+json") {
+  if (
+    req.accepts("application/json", "application/activity+json") ==
+    "application/activity+json"
+  ) {
     return getAccountWithAcceptActivityJson(res, id);
   }
 

@@ -39,6 +39,85 @@ describe(accountsController.getAccount, () => {
     });
   });
 
+  describe("Accept ヘッダーが application/json, application/activity+json のとき", () => {
+    test("対応する ID のアカウントの情報を取得できる", async () => {
+      const account = await accountFactory.create();
+
+      const response = await supertest(app)
+        .get(`/accounts/${account.id}`)
+        .set("accept", "application/json, application/activity+json");
+      console.log(response);
+      expect(response.statusCode).toEqual(200);
+      // Accept ヘッダーの一番最初にある application/json にのっとって普通に JSON 形式の情報が返ってくる
+      const resAccount: Account = response.body;
+      expect(resAccount).toEqual(
+        expect.objectContaining(toJSONObject(account))
+      );
+    });
+  });
+
+  describe("Accept ヘッダーが application/activity+json, application/json のとき", () => {
+    test("対応する ID のアカウントの情報を取得できる", async () => {
+      const account = await accountFactory.create();
+
+      const response = await supertest(app)
+        .get(`/accounts/${account.id}`)
+        .set("accept", "application/activity+json, application/json");
+      console.log(response);
+      expect(response.statusCode).toEqual(200);
+      // Accept ヘッダーの一番最初にある application/activity+json にのっとって Activity Streams 形式の情報が返ってくる
+      const resBody: Person = response.body;
+      expect(resBody).toEqual({
+        "@context": "https://www.w3.org/ns/activitystreams",
+        id: `${config.url}/accounts/${account.id}`,
+        type: "Person",
+        preferredUsername: account.username,
+      });
+    });
+  });
+
+  describe("Accept ヘッダーが application/json のとき", () => {
+    test("対応する ID のアカウントの情報を取得できる", async () => {
+      const account = await accountFactory.create();
+
+      const response = await supertest(app).get(`/accounts/${account.id}`);
+
+      expect(response.statusCode).toEqual(200);
+
+      const resAccount: Account = response.body;
+      expect(resAccount).toEqual(
+        expect.objectContaining(toJSONObject(account))
+      );
+    });
+
+    test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
+      const response = await supertest(app).get(`/accounts/0`);
+
+      expect(response.statusCode).toEqual(404);
+    });
+  });
+
+  describe("Accept ヘッダーが */* のとき", () => {
+    test("対応する ID のアカウントの情報を取得できる", async () => {
+      const account = await accountFactory.create();
+
+      const response = await supertest(app).get(`/accounts/${account.id}`);
+
+      expect(response.statusCode).toEqual(200);
+
+      const resAccount: Account = response.body;
+      expect(resAccount).toEqual(
+        expect.objectContaining(toJSONObject(account))
+      );
+    });
+
+    test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
+      const response = await supertest(app).get(`/accounts/0`);
+
+      expect(response.statusCode).toEqual(404);
+    });
+  });
+
   describe("Accept ヘッダーが指定されていないとき", () => {
     test("対応する ID のアカウントの情報を取得できる", async () => {
       const account = await accountFactory.create();
