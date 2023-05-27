@@ -1,16 +1,41 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
+import type { Person } from "../@types/activitystreams";
+import { config } from "../config";
 
 /**
  * GET /accounts/:id
  */
 export const getAccount = async (req: Request, res: Response) => {
   const id = parseInt(req.params.id);
+
+  if (
+    req.accepts("application/json", "application/activity+json") ==
+    "application/activity+json"
+  ) {
+    return getAccountWithAcceptActivityJson(res, id);
+  }
+
   const account = await prisma.account.findUnique({ where: { id } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
   res.status(200).json(account);
+};
+
+const getAccountWithAcceptActivityJson = async (res: Response, id: number) => {
+  const account = await prisma.account.findUnique({ where: { id } });
+  if (account === null) {
+    return res.status(404).send();
+  }
+
+  const resBody: Person = {
+    "@context": "https://www.w3.org/ns/activitystreams",
+    id: `${config.url}/accounts/${account.id}`,
+    type: "Person",
+    preferredUsername: account.username,
+  };
+  return res.status(200).type("application/activity+json").json(resBody);
 };
 
 /**
