@@ -8,9 +8,10 @@ PostgreSQL と Pleroma を用意するために Docker Compose が必要です�
 
 ### Pleroma の Docker image の準備
 
-https://github.com/angristan/docker-pleroma から Dockerfile を拝借し、適当なディレクトリで Docker image を作成します。
+https://github.com/angristan/docker-pleroma から Dockerfile を拝借し、`pleroma/` ディレクトリで Docker image を作成します。
 
 ```
+$ cd pleroma
 $ docker build -t pleroma .
 ```
 
