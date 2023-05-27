@@ -89,12 +89,12 @@ export const getWellKnownWebFinger = async (req: Request, res: Response) => {
       {
         rel: "self",
         type: "application/activity+json",
-        href: `${config.url}/users/${username}`,
+        href: `${config.url}/accounts/${username}`,
       },
       {
         rel: "http://webfinger.net/rel/profile-page",
         type: "text/html",
-        href: `${config.url}/users/${username}`,
+        href: `${config.url}/accounts/${username}`,
       },
     ],
   };
