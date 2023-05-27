@@ -226,7 +226,6 @@ function userAlreadyLiked(postId: number, likedById: number): Promise<boolean> {
 /**
  * 与えられた Post を ActivityPub の Note オブジェクトに変換します。
  * Post は content を持つ必要があります。
- * @param post
  */
 function translateToAPNote(post: Post): Note {
   assert(post.content !== null);
