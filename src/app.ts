@@ -45,11 +45,17 @@ app.get("/posts/:id", ensureLoggedIn, postsController.getPost);
 app.get("/posts/:id/likes", postsController.getPostLikes);
 app.post("/posts/:id/likes", ensureLoggedIn, postsController.postPostLikes);
 app.delete("/posts/:id/likes", ensureLoggedIn, postsController.deletePostLikes);
-app.get("/accounts/:id", accountsController.getAccount);
-app.get("/accounts/:id/posts", accountsController.getAccountPosts);
-app.get("/accounts/:id/likes", accountsController.getAccountLikes);
-app.get("/accounts/:id/followees", accountsController.getAccountFollowees);
-app.get("/accounts/:id/followers", accountsController.getAccountFollowers);
+app.get("/accounts/:username", accountsController.getAccount);
+app.get("/accounts/:username/posts", accountsController.getAccountPosts);
+app.get("/accounts/:username/likes", accountsController.getAccountLikes);
+app.get(
+  "/accounts/:username/followees",
+  accountsController.getAccountFollowees
+);
+app.get(
+  "/accounts/:username/followers",
+  accountsController.getAccountFollowers
+);
 app.post(
   "/followings/follow",
   ensureLoggedIn,

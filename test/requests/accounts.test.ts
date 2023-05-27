@@ -14,25 +14,25 @@ import { Person } from "../../src/@types/activitystreams";
 
 describe(accountsController.getAccount, () => {
   describe("Accept ヘッダーが application/activity+json のとき", () => {
-    test("対応する ID のアカウントの情報を取得できる", async () => {
+    test("対応する username のアカウントの情報を取得できる", async () => {
       const account = await accountFactory.create();
 
       const response = await supertest(app)
-        .get(`/accounts/${account.id}`)
+        .get(`/accounts/${account.username}`)
         .set("accept", "application/activity+json");
       expect(response.statusCode).toEqual(200);
       const resBody: Person = response.body;
       expect(resBody).toEqual({
         "@context": "https://www.w3.org/ns/activitystreams",
-        id: `${config.url}/accounts/${account.id}`,
+        id: `${config.url}/accounts/${account.username}`,
         type: "Person",
         preferredUsername: account.username,
       });
     });
 
-    test("存在しない ID のアカウントの情報を取得しようとしたら 404 を返す", async () => {
+    test("存在しない username のアカウントの情報を取得しようとしたら 404 を返す", async () => {
       const response = await supertest(app)
-        .get(`/accounts/0`)
+        .get(`/accounts/not-exists-username`)
         .set("accept", "application/activity+json");
       expect(response.statusCode).toEqual(404);
       expect(response.text).toEqual("");
@@ -40,13 +40,12 @@ describe(accountsController.getAccount, () => {
   });
 
   describe("Accept ヘッダーが application/json, application/activity+json のとき", () => {
-    test("対応する ID のアカウントの情報を取得できる", async () => {
+    test("対応する username のアカウントの情報を取得できる", async () => {
       const account = await accountFactory.create();
 
       const response = await supertest(app)
-        .get(`/accounts/${account.id}`)
+        .get(`/accounts/${account.username}`)
         .set("accept", "application/json, application/activity+json");
-      console.log(response);
       expect(response.statusCode).toEqual(200);
       // Accept ヘッダーの一番最初にある application/json にのっとって普通に JSON 形式の情報が返ってくる
       const resAccount: Account = response.body;
@@ -57,19 +56,18 @@ describe(accountsController.getAccount, () => {
   });
 
   describe("Accept ヘッダーが application/activity+json, application/json のとき", () => {
-    test("対応する ID のアカウントの情報を取得できる", async () => {
+    test("対応する username のアカウントの情報を取得できる", async () => {
       const account = await accountFactory.create();
 
       const response = await supertest(app)
-        .get(`/accounts/${account.id}`)
+        .get(`/accounts/${account.username}`)
         .set("accept", "application/activity+json, application/json");
-      console.log(response);
       expect(response.statusCode).toEqual(200);
       // Accept ヘッダーの一番最初にある application/activity+json にのっとって Activity Streams 形式の情報が返ってくる
       const resBody: Person = response.body;
       expect(resBody).toEqual({
         "@context": "https://www.w3.org/ns/activitystreams",
-        id: `${config.url}/accounts/${account.id}`,
+        id: `${config.url}/accounts/${account.username}`,
         type: "Person",
         preferredUsername: account.username,
       });
@@ -77,10 +75,12 @@ describe(accountsController.getAccount, () => {
   });
 
   describe("Accept ヘッダーが application/json のとき", () => {
-    test("対応する ID のアカウントの情報を取得できる", async () => {
+    test("対応する username のアカウントの情報を取得できる", async () => {
       const account = await accountFactory.create();
 
-      const response = await supertest(app).get(`/accounts/${account.id}`);
+      const response = await supertest(app).get(
+        `/accounts/${account.username}`
+      );
 
       expect(response.statusCode).toEqual(200);
 
@@ -90,7 +90,7 @@ describe(accountsController.getAccount, () => {
       );
     });
 
-    test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
+    test("対応する username のアカウントの情報がないときは 404 を返す", async () => {
       const response = await supertest(app).get(`/accounts/0`);
 
       expect(response.statusCode).toEqual(404);
@@ -98,10 +98,12 @@ describe(accountsController.getAccount, () => {
   });
 
   describe("Accept ヘッダーが */* のとき", () => {
-    test("対応する ID のアカウントの情報を取得できる", async () => {
+    test("対応する username のアカウントの情報を取得できる", async () => {
       const account = await accountFactory.create();
 
-      const response = await supertest(app).get(`/accounts/${account.id}`);
+      const response = await supertest(app).get(
+        `/accounts/${account.username}`
+      );
 
       expect(response.statusCode).toEqual(200);
 
@@ -111,7 +113,7 @@ describe(accountsController.getAccount, () => {
       );
     });
 
-    test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
+    test("対応する username のアカウントの情報がないときは 404 を返す", async () => {
       const response = await supertest(app).get(`/accounts/0`);
 
       expect(response.statusCode).toEqual(404);
@@ -119,10 +121,12 @@ describe(accountsController.getAccount, () => {
   });
 
   describe("Accept ヘッダーが指定されていないとき", () => {
-    test("対応する ID のアカウントの情報を取得できる", async () => {
+    test("対応する username のアカウントの情報を取得できる", async () => {
       const account = await accountFactory.create();
 
-      const response = await supertest(app).get(`/accounts/${account.id}`);
+      const response = await supertest(app).get(
+        `/accounts/${account.username}`
+      );
 
       expect(response.statusCode).toEqual(200);
 
@@ -132,7 +136,7 @@ describe(accountsController.getAccount, () => {
       );
     });
 
-    test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
+    test("対応する username のアカウントの情報がないときは 404 を返す", async () => {
       const response = await supertest(app).get(`/accounts/0`);
 
       expect(response.statusCode).toEqual(404);
@@ -141,14 +145,16 @@ describe(accountsController.getAccount, () => {
 });
 
 describe(accountsController.getAccountLikes, () => {
-  test("対応する ID の Account の like を取得できる", async () => {
+  test("対応する username の Account の like を取得できる", async () => {
     const account = await accountFactory.create();
     const posts = await postFactory.createList(2, { authorId: account.id });
 
     await likeFactory.create({ postId: posts[0].id, likedById: account.id });
     await likeFactory.create({ postId: posts[1].id, likedById: account.id });
 
-    const response = await supertest(app).get(`/accounts/${account.id}/likes`);
+    const response = await supertest(app).get(
+      `/accounts/${account.username}/likes`
+    );
 
     expect(response.statusCode).toEqual(200);
 
@@ -162,27 +168,18 @@ describe(accountsController.getAccountLikes, () => {
     );
   });
 
-  test("存在しない ID の Account の like を取得しようとしたら 404 を返す", async () => {
-    const response = await supertest(app).get(`/accounts/0/likes`);
+  test("存在しない username の Account の like を取得しようとしたら 404 を返す", async () => {
+    const response = await supertest(app).get(
+      `/accounts/not-exists-username/likes`
+    );
 
     expect(response.statusCode).toEqual(404);
     expect(response.body).toEqual({ message: "Account not found" });
   });
-
-  describe("不正な ID が与えられた場合は 400 を返す", () => {
-    test("ID が abc のとき", async () => {
-      const response = await supertest(app).get(`/accounts/abc/likes`);
-
-      expect(response.statusCode).toEqual(400);
-      expect(response.body).toEqual({
-        message: "id is not an integer",
-      });
-    });
-  });
 });
 
 describe(accountsController.getAccountPosts, () => {
-  describe("対応する ID のアカウントの投稿を取得するとき", () => {
+  describe("対応する username のアカウントの投稿を取得するとき", () => {
     let account: Account;
     let postWithReply: Post;
     let postWithRepost: Post;
@@ -221,7 +218,7 @@ describe(accountsController.getAccountPosts, () => {
 
     test("リプライを含めた投稿を取得するとき、リプライを含む投稿を返す", async () => {
       const response = await supertest(app).get(
-        `/accounts/${account.id}/posts?includeReplies=true`
+        `/accounts/${account.username}/posts?includeReplies=true`
       );
 
       expect(response.statusCode).toEqual(200);
@@ -236,7 +233,7 @@ describe(accountsController.getAccountPosts, () => {
 
     test("リプライを含めた投稿を取得しないとき、リプライを含む投稿を返さない", async () => {
       const response = await supertest(app).get(
-        `/accounts/${account.id}/posts?includeReplies=false`
+        `/accounts/${account.username}/posts?includeReplies=false`
       );
 
       expect(response.statusCode).toEqual(200);
@@ -250,7 +247,7 @@ describe(accountsController.getAccountPosts, () => {
 
     test("Repost を含めた投稿を取得するとき、Repost を含む投稿を返す", async () => {
       const response = await supertest(app).get(
-        `/accounts/${account.id}/posts?includeReposts=true`
+        `/accounts/${account.username}/posts?includeReposts=true`
       );
 
       expect(response.statusCode).toEqual(200);
@@ -268,7 +265,7 @@ describe(accountsController.getAccountPosts, () => {
 
     test("Repost を含めた投稿を取得しないとき、Repost を含む投稿を返さない", async () => {
       const response = await supertest(app).get(
-        `/accounts/${account.id}/posts?includeReposts=false`
+        `/accounts/${account.username}/posts?includeReposts=false`
       );
 
       expect(response.statusCode).toEqual(200);
@@ -283,14 +280,14 @@ describe(accountsController.getAccountPosts, () => {
       );
     });
 
-    test("別の ID のアカウントの投稿を含まない", async () => {
+    test("別の username のアカウントの投稿を含まない", async () => {
       const anotherAccount = await accountFactory.create();
       const anotherAccountPost = await postFactory.create({
         authorId: anotherAccount.id,
       });
 
       const response = await supertest(app).get(
-        `/accounts/${account.id}/posts?includeReplies=true`
+        `/accounts/${account.username}/posts?includeReplies=true`
       );
 
       expect(response.statusCode).toEqual(200);
@@ -302,20 +299,11 @@ describe(accountsController.getAccountPosts, () => {
         })
       );
     });
-
-    test("不正な投稿の ID を指定したときに 400 を返す", async () => {
-      const response = await supertest(app).get(`/accounts/abc/posts`);
-
-      expect(response.statusCode).toEqual(400);
-      expect(response.body).toEqual({
-        message: "id is not an integer",
-      });
-    });
   });
 });
 
-describe("GET /accounts/:id/followees", () => {
-  test("存在する ID の Account の followees を取得できる", async () => {
+describe("GET /accounts/:username/followees", () => {
+  test("存在する username の Account の followees を取得できる", async () => {
     const account = await accountFactory.create();
     const followees = await accountFactory.createList(2);
 
@@ -329,7 +317,7 @@ describe("GET /accounts/:id/followees", () => {
     });
 
     const response = await supertest(app).get(
-      `/accounts/${account.id}/followees`
+      `/accounts/${account.username}/followees`
     );
 
     expect(response.statusCode).toEqual(200);
@@ -344,27 +332,18 @@ describe("GET /accounts/:id/followees", () => {
     );
   });
 
-  test("存在しない ID の Account の followees を取得しようとしたら 404 を返す", async () => {
-    const response = await supertest(app).get(`/accounts/0/followees`);
+  test("存在しない username の Account の followees を取得しようとしたら 404 を返す", async () => {
+    const response = await supertest(app).get(
+      `/accounts/not-exists-username/followees`
+    );
 
     expect(response.statusCode).toEqual(404);
     expect(response.body).toEqual({ message: "Account not found" });
   });
-
-  describe("不正な ID が与えられた場合は 400 を返す", () => {
-    test("ID が abc のとき", async () => {
-      const response = await supertest(app).get(`/accounts/abc/followees`);
-
-      expect(response.statusCode).toEqual(400);
-      expect(response.body).toEqual({
-        message: "id is not an integer",
-      });
-    });
-  });
 });
 
-describe("GET /accounts/:id/followers", () => {
-  test("存在する ID の Account の followers を取得できる", async () => {
+describe("GET /accounts/:username/followers", () => {
+  test("存在する username の Account の followers を取得できる", async () => {
     const account = await accountFactory.create();
     const followers = await accountFactory.createList(2);
 
@@ -378,7 +357,7 @@ describe("GET /accounts/:id/followers", () => {
     });
 
     const response = await supertest(app).get(
-      `/accounts/${account.id}/followers`
+      `/accounts/${account.username}/followers`
     );
 
     expect(response.statusCode).toEqual(200);
@@ -393,21 +372,12 @@ describe("GET /accounts/:id/followers", () => {
     );
   });
 
-  test("存在しない ID の Account の followers を取得しようとしたら 404 を返す", async () => {
-    const response = await supertest(app).get(`/accounts/0/followers`);
+  test("存在しない username の Account の followers を取得しようとしたら 404 を返す", async () => {
+    const response = await supertest(app).get(
+      `/accounts/not-exists-username/followers`
+    );
 
     expect(response.statusCode).toEqual(404);
     expect(response.body).toEqual({ message: "Account not found" });
-  });
-
-  describe("不正な ID が与えられた場合は 400 を返す", () => {
-    test("ID が abc のとき", async () => {
-      const response = await supertest(app).get(`/accounts/abc/followers`);
-
-      expect(response.statusCode).toEqual(400);
-      expect(response.body).toEqual({
-        message: "id is not an integer",
-      });
-    });
   });
 });
