@@ -76,12 +76,12 @@ describe("GET /.well-known/webfinger", () => {
         {
           rel: "self",
           type: "application/activity+json",
-          href: `${config.url}/users/${account.username}`,
+          href: `${config.url}/accounts/${account.username}`,
         },
         {
           rel: "http://webfinger.net/rel/profile-page",
           type: "text/html",
-          href: `${config.url}/users/${account.username}`,
+          href: `${config.url}/accounts/${account.username}`,
         },
       ],
     });
