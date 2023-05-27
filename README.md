@@ -32,7 +32,7 @@ $ yarn dev:studio // Prisma Studio の実行
 Pleroma のコンテナが実行されている状態で以下を実行し、`fakeadmin@pleroma.local` という管理者権限付きアカウントを作成します。
 
 ```
-$ docker exec -it pleroma_web sh ./bin/pleroma_ctl user new fakeadmin admin@pleroma.localhost --admin
+$ docker exec -it pleroma_web sh ./bin/pleroma_ctl user new fakeadmin admin@pleroma.localhost --admin -y
 ```
 
 `y` を入力して Enter を押すとアカウントが作成されます。stdout の最後に URL が表示されるので、そこの FQDN を `pleroma.localhost:5001` などに変更してパスワードリセットを実施し、`localhost:5001` などから開けるフロントエンドを用いてログインしてください。
