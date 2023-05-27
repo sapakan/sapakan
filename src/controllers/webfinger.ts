@@ -71,7 +71,7 @@ export const getWellKnownWebFinger = async (req: Request, res: Response) => {
   // > request as per Section 10.4.5 of RFC 2616.
   // https://datatracker.ietf.org/doc/html/rfc7033#section-4.2
   // Section 10.4.5 of RFC 2616 は 404 Not Found を指している
-  const configHost = config.url.replace(`http?://`, "");
+  const configHost = config.url.replace(/https?:\/\//, "");
   if (host !== configHost) {
     res.status(404).end();
     return;

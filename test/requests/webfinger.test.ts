@@ -41,7 +41,7 @@ describe("GET /.well-known/webfinger", () => {
   });
 
   test("ユーザーが存在しない場合は 404 を返す", async () => {
-    const configHost = config.url.replace(`http?://`, "");
+    const configHost = config.url.replace(/https?:\/\//, "");
     const response = await supertest(app).get(
       `/.well-known/webfinger?resource=acct:not-exists@${configHost}`
     );
@@ -53,7 +53,7 @@ describe("GET /.well-known/webfinger", () => {
   test("指定したユーザーに関する情報を取得できる", async () => {
     const account = await accountFactory.create();
 
-    const configHost = config.url.replace(`http?://`, "");
+    const configHost = config.url.replace(/https?:\/\//, "");
     const response = await supertest(app).get(
       `/.well-known/webfinger?resource=acct:${account.username}@${configHost}`
     );
