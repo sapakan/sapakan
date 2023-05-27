@@ -9,23 +9,55 @@ import {
 } from "../lib/factories";
 import { toJSONObject } from "../lib/to-json-object";
 import app from "../../src/app";
+import { config } from "../../src/config";
+import { Person } from "../../src/@types/activitystreams";
 
 describe(accountsController.getAccount, () => {
-  test("対応する ID のアカウントの情報を取得できる", async () => {
-    const account = await accountFactory.create();
+  describe("Accept ヘッダーが application/activity+json のとき", () => {
+    test("対応する ID のアカウントの情報を取得できる", async () => {
+      const account = await accountFactory.create();
 
-    const response = await supertest(app).get(`/accounts/${account.id}`);
+      const response = await supertest(app)
+        .get(`/accounts/${account.id}`)
+        .set("accept", "application/activity+json");
+      expect(response.statusCode).toEqual(200);
+      const resBody: Person = response.body;
+      expect(resBody).toEqual({
+        "@context": "https://www.w3.org/ns/activitystreams",
+        id: `${config.url}/accounts/${account.id}`,
+        type: "Person",
+        preferredUsername: account.username,
+      });
+    });
 
-    expect(response.statusCode).toEqual(200);
-
-    const resAccount: Account = response.body;
-    expect(resAccount).toEqual(expect.objectContaining(toJSONObject(account)));
+    test("存在しない ID のアカウントの情報を取得しようとしたら 404 を返す", async () => {
+      const response = await supertest(app)
+        .get(`/accounts/0`)
+        .set("accept", "application/activity+json");
+      expect(response.statusCode).toEqual(404);
+      expect(response.text).toEqual("");
+    });
   });
 
-  test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
-    const response = await supertest(app).get(`/accounts/0`);
+  describe("Accept ヘッダーが指定されていないとき", () => {
+    test("対応する ID のアカウントの情報を取得できる", async () => {
+      const account = await accountFactory.create();
 
-    expect(response.statusCode).toEqual(404);
+      const response = await supertest(app).get(`/accounts/${account.id}`);
+
+      expect(response.statusCode).toEqual(200);
+
+      const resAccount: Account = response.body;
+      expect(resAccount).toEqual(
+        expect.objectContaining(toJSONObject(account))
+      );
+    });
+
+    test("対応する ID のアカウントの情報がないときは 404 を返す", async () => {
+      const response = await supertest(app).get(`/accounts/0`);
+
+      expect(response.statusCode).toEqual(404);
+    });
   });
 });
 
