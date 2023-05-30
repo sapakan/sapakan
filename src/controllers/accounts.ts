@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import type { Activity, Person } from "../@types/activitystreams";
 import { config } from "../config";
+import { validateHttpRequest } from "../lib/validate-http-request";
 
 /**
  * GET /accounts/:username
@@ -164,6 +165,13 @@ export const postAccountInbox = async (req: Request, res: Response) => {
   const account = await prisma.account.findUnique({ where: { username } });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
+  }
+
+  const valid = await validateHttpRequest(req, req.rawBody);
+  if (!valid) {
+    return res
+      .status(400)
+      .json({ message: "request with invalid signature and/or digest" });
   }
 
   // TODO: フォローの実装ができたら以下のデバッグ出力を削除する

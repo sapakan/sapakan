@@ -12,6 +12,7 @@ import * as nodeInfoController from "./controllers/nodeinfo";
 import * as webFingerController from "./controllers/webfinger";
 import passport from "passport";
 import { ensureLoggedIn } from "./lib/middlewares";
+import * as http from "http";
 
 const app = express()
   .use(
@@ -35,6 +36,13 @@ app.use(bodyParser.json());
 app.use(
   bodyParser.json({
     type: "application/activity+json",
+    verify(req: http.IncomingMessage, res: http.ServerResponse, buf: Buffer) {
+      // verify を async function にすることはできないため Express のハンドラ側で署名を検証する
+      // TODO: http.IncomingMessage に rawBody プロパティを追加する
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      req.rawBody = buf;
+    },
   })
 );
 app.use(bodyParser.urlencoded({ extended: true }));
