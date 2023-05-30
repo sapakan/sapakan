@@ -77,7 +77,14 @@ export const getWellKnownWebFinger = async (req: Request, res: Response) => {
     return;
   }
 
-  const account = await prisma.account.findUnique({ where: { username } });
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
   if (account === null) {
     res.status(404).end();
     return;
