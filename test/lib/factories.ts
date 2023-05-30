@@ -52,6 +52,7 @@ export const accountFactory = Factory.define<
 
   return {
     userId: ID_UNASSIGNED,
+    host: "localhost",
     username: `user${randomUUID().replaceAll("-", "")}`,
   };
 });

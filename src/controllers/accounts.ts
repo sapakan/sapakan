@@ -15,7 +15,14 @@ export const getAccount = async (req: Request, res: Response) => {
     return getAccountWithAcceptActivityJson(res, username);
   }
 
-  const account = await prisma.account.findUnique({ where: { username } });
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
@@ -26,7 +33,14 @@ const getAccountWithAcceptActivityJson = async (
   res: Response,
   username: string
 ) => {
-  const account = await prisma.account.findUnique({ where: { username } });
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
   if (account === null) {
     return res.status(404).send();
   }
@@ -45,7 +59,14 @@ const getAccountWithAcceptActivityJson = async (
  */
 export const getAccountLikes = async (req: Request, res: Response) => {
   const username = req.params.username;
-  const account = await prisma.account.findUnique({ where: { username } });
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
@@ -74,7 +95,14 @@ export const getAccountPosts = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "username is required" });
   }
 
-  const account = await prisma.account.findUnique({ where: { username } });
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
@@ -106,7 +134,14 @@ export const getAccountFollowees = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "username is required" });
   }
 
-  const account = await prisma.account.findUnique({ where: { username } });
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }
@@ -133,7 +168,14 @@ export const getAccountFollowers = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "username is required" });
   }
 
-  const account = await prisma.account.findUnique({ where: { username } });
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
   }

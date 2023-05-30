@@ -141,6 +141,39 @@ describe(accountsController.getAccount, () => {
 
       expect(response.statusCode).toEqual(404);
     });
+
+    test("外部インスタンスのユーザーの情報を取得しようとしたら 404 を返す", async () => {
+      const response = await supertest(app)
+        .get("/accounts/test@example.com")
+        .set("accept", "application/activity+json");
+      expect(response.statusCode).toEqual(404);
+    });
+
+    test("同一 username の外部インスタンスのユーザーが存在してもローカルに存在しなければ 404 を返す", async () => {
+      const account = await accountFactory.create({ host: "example.com" });
+
+      const response = await supertest(app).get(
+        `/accounts/${account.username}`
+      );
+      expect(response.statusCode).toEqual(404);
+    });
+
+    test("同一 username のユーザー情報が外部インスタンスとローカルにあるとき、ローカルのものを返す", async () => {
+      const localAccount = await accountFactory.create();
+      const externalAccount = await accountFactory.create({
+        username: localAccount.username,
+        host: "example.com",
+      });
+
+      const response = await supertest(app).get(
+        `/accounts/${localAccount.username}`
+      );
+      expect(response.statusCode).toEqual(200);
+      const resAccount: Account = response.body;
+      expect(resAccount).toEqual(
+        expect.objectContaining(toJSONObject(localAccount))
+      );
+    });
   });
 });
 

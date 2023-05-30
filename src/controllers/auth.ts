@@ -93,6 +93,7 @@ const postAuthSignup = async (
     data: {
       username,
       userId: createdUser.id,
+      host: "localhost",
     },
     select: {
       id: true,
