@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import prisma from "../lib/prisma";
-import type { Person } from "../@types/activitystreams";
+import type { Activity, Person } from "../@types/activitystreams";
 import { config } from "../config";
 
 /**
@@ -50,6 +50,7 @@ const getAccountWithAcceptActivityJson = async (
     id: `${config.url}/accounts/${account.username}`,
     type: "Person",
     preferredUsername: account.username,
+    inbox: `${config.url}/accounts/${account.username}/inbox`,
   };
   return res.status(200).type("application/activity+json").json(resBody);
 };
@@ -191,4 +192,37 @@ export const getAccountFollowers = async (req: Request, res: Response) => {
     },
   });
   res.status(200).json(followers);
+};
+
+/**
+ * POST /accounts/:username/inbox
+ */
+export const postAccountInbox = async (req: Request, res: Response) => {
+  const username = req.params.username;
+  if (username === undefined) {
+    return res.status(400).json({ message: "username is required" });
+  }
+
+  const account = await prisma.account.findUnique({
+    where: {
+      username_host: {
+        username,
+        host: "localhost",
+      },
+    },
+  });
+  if (account === null) {
+    return res.status(404).json({ message: "Account not found" });
+  }
+
+  // TODO: フォローの実装ができたら以下のデバッグ出力を削除する
+  console.log(JSON.stringify(req.headers));
+  console.log(req.body);
+
+  const activity = req.body as Activity;
+  if (activity.type === "Follow") {
+    // TODO: フォローしてきたアカウントをデータベースに格納する
+    // TODO: Accept アクティビティを配送する
+  }
+  res.status(204).json({ message: "ok" });
 };

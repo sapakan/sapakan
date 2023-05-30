@@ -27,6 +27,7 @@ describe(accountsController.getAccount, () => {
         id: `${config.url}/accounts/${account.username}`,
         type: "Person",
         preferredUsername: account.username,
+        inbox: `${config.url}/accounts/${account.username}/inbox`,
       });
     });
 
@@ -70,6 +71,7 @@ describe(accountsController.getAccount, () => {
         id: `${config.url}/accounts/${account.username}`,
         type: "Person",
         preferredUsername: account.username,
+        inbox: `${config.url}/accounts/${account.username}/inbox`,
       });
     });
   });

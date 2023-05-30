@@ -3,6 +3,7 @@ export type Person = {
   id: string;
   type: "Person";
   preferredUsername: string;
+  inbox: string;
 };
 
 export type Note = {
@@ -23,3 +24,21 @@ export type Note = {
   url: string;
   inReplyTo: string | undefined;
 };
+
+export type FollowActivity = {
+  "@context": string | (string | object)[];
+  type: "Follow";
+  id: string;
+  actor: string;
+  object: string;
+};
+
+export type AcceptActivity = {
+  "@context": string | (string | object)[];
+  type: "Accept";
+  id: string;
+  actor: string;
+  object: FollowActivity;
+};
+
+export type Activity = FollowActivity | AcceptActivity;

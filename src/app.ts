@@ -32,6 +32,11 @@ const app = express()
 
 app.set("port", process.env.PORT || 3000);
 app.use(bodyParser.json());
+app.use(
+  bodyParser.json({
+    type: "application/activity+json",
+  })
+);
 app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", homeController.index);
@@ -56,6 +61,7 @@ app.get(
   "/accounts/:username/followers",
   accountsController.getAccountFollowers
 );
+app.post("/accounts/:username/inbox", accountsController.postAccountInbox);
 app.post(
   "/followings/follow",
   ensureLoggedIn,
