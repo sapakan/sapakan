@@ -4,6 +4,10 @@ declare global {
       accountId: number;
       username: string;
     }
+
+    interface Request {
+      rawBody: Buffer;
+    }
   }
 }
 export default global;
