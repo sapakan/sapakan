@@ -89,7 +89,7 @@ const postAuthSignup = async (
     },
   });
 
-  const [publicKey, privateKey] = await createKeyPair();
+  const [publicKey, privateKey] = createKeyPair();
 
   const createdAccount = await prisma.account.create({
     data: {

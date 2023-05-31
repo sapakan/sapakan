@@ -50,7 +50,7 @@ export const accountFactory = Factory.define<
     }
 
     if (account.publicKey === "" || account.privateKey === "") {
-      const [publicKey, privateKey] = await createKeyPair();
+      const [publicKey, privateKey] = createKeyPair();
       account.publicKey = publicKey;
       account.privateKey = privateKey;
     }
