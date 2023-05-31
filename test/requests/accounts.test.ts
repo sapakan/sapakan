@@ -28,6 +28,11 @@ describe(accountsController.getAccount, () => {
         type: "Person",
         preferredUsername: account.username,
         inbox: `${config.url}/accounts/${account.username}/inbox`,
+        publicKey: {
+          id: `${config.url}/accounts/${account.username}#main-key`,
+          owner: `${config.url}/accounts/${account.username}`,
+          publicKeyPem: account.publicKey,
+        },
       });
     });
 
@@ -72,6 +77,11 @@ describe(accountsController.getAccount, () => {
         type: "Person",
         preferredUsername: account.username,
         inbox: `${config.url}/accounts/${account.username}/inbox`,
+        publicKey: {
+          id: `${config.url}/accounts/${account.username}#main-key`,
+          owner: `${config.url}/accounts/${account.username}`,
+          publicKeyPem: account.publicKey,
+        },
       });
     });
   });

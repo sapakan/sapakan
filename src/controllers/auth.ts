@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response, Router } from "express";
 import passport from "passport";
 import { Strategy } from "passport-local";
-import { generateHash, verifyPassword } from "../lib/auth";
+import { createKeyPair, generateHash, verifyPassword } from "../lib/auth";
 import prisma from "../lib/prisma";
 
 export const router = Router();
@@ -89,11 +89,15 @@ const postAuthSignup = async (
     },
   });
 
+  const [publicKey, privateKey] = await createKeyPair();
+
   const createdAccount = await prisma.account.create({
     data: {
       username,
       userId: createdUser.id,
       host: "localhost",
+      publicKey: publicKey,
+      privateKey: privateKey,
     },
     select: {
       id: true,

@@ -4,6 +4,11 @@ export type Person = {
   type: "Person";
   preferredUsername: string;
   inbox: string;
+  publicKey: {
+    id: string;
+    owner: string;
+    publicKeyPem: string;
+  };
 };
 
 export type Note = {

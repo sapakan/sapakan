@@ -15,6 +15,7 @@ import { createPost } from "../../src/services/create-post";
 import { randomUUID } from "crypto";
 import { createFollowing } from "../../src/services/create-following";
 import { createBlocking } from "../../src/services/create-blocking";
+import { createKeyPair } from "../../src/lib/auth";
 
 const ID_UNASSIGNED = -1;
 /**
@@ -47,6 +48,13 @@ export const accountFactory = Factory.define<
       const user = await userFactory.create();
       account.userId = user.id;
     }
+
+    if (account.publicKey === "" || account.privateKey === "") {
+      const [publicKey, privateKey] = await createKeyPair();
+      account.publicKey = publicKey;
+      account.privateKey = privateKey;
+    }
+
     return prisma.account.create({ data: account });
   });
 
@@ -54,6 +62,8 @@ export const accountFactory = Factory.define<
     userId: ID_UNASSIGNED,
     host: "localhost",
     username: `user${randomUUID().replaceAll("-", "")}`,
+    privateKey: "",
+    publicKey: "",
   };
 });
 
