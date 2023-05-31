@@ -26,6 +26,9 @@ model Account {
   blockee       Blocking[]  @relation("AccountBlockee")
   blocker       Blocking[]  @relation("AccountBlocker")
 
+  privateKey String @db.Text()
+  publicKey  String @db.Text()
+
   @@unique([username, host])
 }
 

@@ -52,6 +52,11 @@ const getAccountWithAcceptActivityJson = async (
     type: "Person",
     preferredUsername: account.username,
     inbox: `${config.url}/accounts/${account.username}/inbox`,
+    publicKey: {
+      id: `${config.url}/accounts/${account.username}#main-key`,
+      owner: `${config.url}/accounts/${account.username}`,
+      publicKeyPem: account.publicKey,
+    },
   };
   return res.status(200).type("application/activity+json").json(resBody);
 };
