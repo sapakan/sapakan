@@ -20,6 +20,7 @@ import {
   createExternalAccount,
   createLocalAccount,
 } from "../../src/services/create-account";
+import { randomUuidWithoutHyphen } from "../../src/lib/random-uuid-without-hyphen";
 
 const ID_UNASSIGNED = -1;
 /**
@@ -87,7 +88,7 @@ export const externalAccountFactory = Factory.define<
   });
 
   const host = "external.example.com";
-  const username = `user${randomUUID().replaceAll("-", "")}`;
+  const username = `user${randomUuidWithoutHyphen()}`;
   return {
     userId: ID_UNASSIGNED,
     host: host,
