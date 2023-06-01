@@ -1,8 +1,10 @@
 import { NextFunction, Request, Response, Router } from "express";
 import passport from "passport";
 import { Strategy } from "passport-local";
-import { createKeyPair, generateHash, verifyPassword } from "../lib/auth";
+import { generateHash, verifyPassword } from "../lib/auth";
 import prisma from "../lib/prisma";
+import { createLocalAccount } from "../services/create-account";
+import assert from "assert";
 
 export const router = Router();
 
@@ -14,7 +16,8 @@ passport.use(
     const user = await prisma.user.findFirst({
       where: {
         account: {
-          username: username,
+          username,
+          host: "localhost",
         },
       },
     });
@@ -89,15 +92,10 @@ const postAuthSignup = async (
     },
   });
 
-  const [publicKey, privateKey] = createKeyPair();
-
-  const createdAccount = await prisma.account.create({
-    data: {
-      username,
+  await createLocalAccount(username, createdUser.id);
+  const createdAccount = await prisma.account.findUnique({
+    where: {
       userId: createdUser.id,
-      host: "localhost",
-      publicKey: publicKey,
-      privateKey: privateKey,
     },
     select: {
       id: true,
@@ -106,6 +104,7 @@ const postAuthSignup = async (
       updatedAt: true,
     },
   });
+  assert(createdAccount !== null);
 
   req.login(
     { accountId: createdAccount.id, username: createdAccount.username },

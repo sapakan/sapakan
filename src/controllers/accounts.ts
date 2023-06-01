@@ -23,6 +23,12 @@ export const getAccount = async (req: Request, res: Response) => {
         host: "localhost",
       },
     },
+    select: {
+      id: true,
+      username: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
   if (account === null) {
     return res.status(404).json({ message: "Account not found" });
