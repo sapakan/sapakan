@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { config } from "../config";
 import prisma from "../lib/prisma";
+import assert from "assert";
 
 /**
  * 与えられた HTTP リクエストに署名を付与します。
@@ -22,6 +23,8 @@ export async function signHttpRequestWithAccount(
         },
       },
     });
+    // ローカルアカウントは privateKey を必ず持つ
+    assert(account.privateKey !== null);
     privateKey = account.privateKey;
   }
 

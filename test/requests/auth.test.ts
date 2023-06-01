@@ -53,6 +53,22 @@ describe("POST /auth/signup", () => {
     expect(resAccount).toEqual(expect.objectContaining({ username: username }));
   });
 
+  test("作成した Account が持つ privateKey をレスポンスに含んでいない", async () => {
+    const response = await supertest
+      .agent(app)
+      .post("/auth/signup")
+      .type("form")
+      .send({
+        username: "privatekeytarou",
+        password: "password",
+      });
+
+    expect(response.statusCode).toEqual(201);
+
+    const resAccount: Account = response.body;
+    expect(resAccount).not.toHaveProperty("privateKey");
+  });
+
   test("重複する username が与えられた場合は 400 を返す", async () => {
     const account = await accountFactory.create();
 

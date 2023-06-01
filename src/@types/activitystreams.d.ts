@@ -40,10 +40,18 @@ export type FollowActivity = {
 
 export type AcceptActivity = {
   "@context": string | (string | object)[];
-  type: "Accept";
   id: string;
+  type: "Accept";
   actor: string;
-  object: FollowActivity;
+  object: Activity;
 };
 
-export type Activity = FollowActivity | AcceptActivity;
+export type UndoActivity = {
+  "@context": string | (string | object)[];
+  id: string;
+  type: "Undo";
+  actor: string;
+  object: Activity;
+};
+
+export type Activity = FollowActivity | AcceptActivity | UndoActivity;

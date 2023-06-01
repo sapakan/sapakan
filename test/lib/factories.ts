@@ -16,6 +16,11 @@ import { randomUUID } from "crypto";
 import { createFollowing } from "../../src/services/create-following";
 import { createBlocking } from "../../src/services/create-blocking";
 import { createKeyPair } from "../../src/lib/auth";
+import {
+  createExternalAccount,
+  createLocalAccount,
+} from "../../src/services/create-account";
+import { randomUuidWithoutHyphen } from "../../src/lib/random-uuid-without-hyphen";
 
 const ID_UNASSIGNED = -1;
 /**
@@ -39,6 +44,30 @@ export const userFactory = Factory.define<
 });
 
 export const accountFactory = Factory.define<
+  {
+    userId: number;
+    username: string;
+  },
+  never,
+  Account
+>(({ onCreate }) => {
+  onCreate(async (account) => {
+    if (account.userId === ID_UNASSIGNED) {
+      const user = await userFactory.create();
+      account.userId = user.id;
+    }
+
+    return createLocalAccount(account.username, account.userId);
+  });
+
+  const username = `user${randomUUID().replaceAll("-", "")}`;
+  return {
+    userId: ID_UNASSIGNED,
+    username: username,
+  };
+});
+
+export const externalAccountFactory = Factory.define<
   Prisma.AccountCreateArgs["data"],
   never,
   Account
@@ -49,21 +78,24 @@ export const accountFactory = Factory.define<
       account.userId = user.id;
     }
 
-    if (account.publicKey === "" || account.privateKey === "") {
-      const [publicKey, privateKey] = createKeyPair();
-      account.publicKey = publicKey;
-      account.privateKey = privateKey;
-    }
-
-    return prisma.account.create({ data: account });
+    return await createExternalAccount(
+      account.username,
+      account.host,
+      account.apid,
+      account.inboxUrl,
+      account.publicKey
+    );
   });
 
+  const host = "external.example.com";
+  const username = `user${randomUuidWithoutHyphen()}`;
   return {
     userId: ID_UNASSIGNED,
-    host: "localhost",
-    username: `user${randomUUID().replaceAll("-", "")}`,
-    privateKey: "",
-    publicKey: "",
+    host: host,
+    apid: `https://${host}/accounts/${username}`,
+    inboxUrl: `https://${host}/accounts/${username}/inbox`,
+    publicKey: createKeyPair()[0],
+    username: username,
   };
 });
 
