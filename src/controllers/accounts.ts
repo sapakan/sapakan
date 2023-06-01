@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import prisma from "../lib/prisma";
 import type { Activity, Person } from "../@types/activitystreams";
 import { config } from "../config";
-import { validateHttpRequest } from "../lib/validate-http-request";
+import { validateHttpRequest } from "../services/validate-http-request";
 
 /**
  * GET /accounts/:username
