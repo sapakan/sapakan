@@ -1,7 +1,7 @@
 import {
   validateDigest,
   validateHttpRequest,
-} from "../../src/lib/validate-http-request";
+} from "../../src/services/validate-http-request";
 import httpMocks from "node-mocks-http";
 
 describe(validateDigest, () => {

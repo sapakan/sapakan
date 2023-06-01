@@ -3,7 +3,8 @@ import * as http from "http";
 import assert from "assert";
 
 type ValidateSignatureOptions = {
-  publicKey?: string;
+  publicKey: string | null;
+  requireDigest?: boolean;
 };
 
 /**
@@ -12,18 +13,27 @@ type ValidateSignatureOptions = {
  */
 export async function validateHttpRequest(
   req: http.IncomingMessage,
-  reqBody: Buffer,
-  options: ValidateSignatureOptions = {}
-): Promise<boolean> {
-  const digest = req.headers.digest;
-  if (digest === undefined || typeof digest === "object") {
-    return false;
+  reqBody: Buffer | null,
+  options: ValidateSignatureOptions = {
+    publicKey: null,
+    requireDigest: true,
   }
-  if (!validateDigest(digest, reqBody)) {
-    return false;
+): Promise<boolean> {
+  if (options.requireDigest) {
+    if (reqBody === null) {
+      return false;
+    }
+
+    const digest = req.headers.digest;
+    if (digest === undefined || typeof digest === "object") {
+      return false;
+    }
+    if (!validateDigest(digest, reqBody)) {
+      return false;
+    }
   }
 
-  return await validateSignature(req, options);
+  return await validateSignature(req, options.publicKey);
 }
 
 /**
@@ -53,7 +63,7 @@ export function validateDigest(
  */
 async function validateSignature(
   req: http.IncomingMessage,
-  options: ValidateSignatureOptions = {}
+  publicKey: string | null
 ): Promise<boolean> {
   const signatureHeaderValue = req.headers.signature;
   if (
@@ -90,8 +100,7 @@ async function validateSignature(
   const signedHeaders = headers.split(" ");
   const signedString = buildSignedString(req, signedHeaders);
 
-  let publicKey = options.publicKey;
-  if (publicKey === undefined) {
+  if (publicKey === null) {
     const fetchedPublicKey = await fetchPublicKey(keyId);
     if (fetchedPublicKey === null) {
       return false;
