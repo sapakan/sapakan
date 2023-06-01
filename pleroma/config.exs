@@ -73,3 +73,9 @@ if File.exists?("/var/lib/pleroma/config.exs"),
 
     # For additional configuration outside of environmental variables
     """)
+
+config :logger, :console,
+  level: :debug,
+  format: "\n$time $metadata[$level] $message\n",
+  metadata: [:request_id]
+
