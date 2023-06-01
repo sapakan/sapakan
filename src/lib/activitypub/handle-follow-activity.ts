@@ -14,7 +14,7 @@ export async function handleFollowActivity(
   account: Account
 ) {
   const remoteAccount = await findOrCreateAccountWithApid(activity.actor);
-  await createFollowing(remoteAccount.id, account.id);
+  await createFollowing(account.id, remoteAccount.id);
 
   const acceptActivity: AcceptActivity = {
     "@context": "https://www.w3.org/ns/activitystreams",
