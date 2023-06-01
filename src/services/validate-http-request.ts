@@ -99,7 +99,6 @@ async function validateSignature(
 
   const signedHeaders = headers.split(" ");
   const signedString = buildSignedString(req, signedHeaders);
-  console.log(signedString);
 
   if (publicKey === null) {
     const fetchedPublicKey = await fetchPublicKey(keyId);
