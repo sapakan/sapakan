@@ -3,6 +3,8 @@ import prisma from "../lib/prisma";
 import type { Activity, Person } from "../@types/activitystreams";
 import { config } from "../config";
 import { validateHttpRequest } from "../services/validate-http-request";
+import { handleFollowActivity } from "../lib/activitypub/handle-follow-activity";
+import { handleUndoFollowActivity } from "../lib/activitypub/handle-undo-follow-activity";
 
 /**
  * GET /accounts/:username
@@ -234,14 +236,20 @@ export const postAccountInbox = async (req: Request, res: Response) => {
       .json({ message: "request with invalid signature and/or digest" });
   }
 
-  // TODO: フォローの実装ができたら以下のデバッグ出力を削除する
-  console.log(JSON.stringify(req.headers));
-  console.log(req.body);
-
   const activity = req.body as Activity;
-  if (activity.type === "Follow") {
-    // TODO: フォローしてきたアカウントをデータベースに格納する
-    // TODO: Accept アクティビティを配送する
+  switch (activity.type) {
+    case "Follow":
+      handleFollowActivity(activity, account);
+      break;
+    case "Undo":
+      if (activity.object.type === "Follow") {
+        handleUndoFollowActivity(activity, account);
+      } else {
+        console.log(`Unsupported Undo activity: ${activity}`);
+        return res.status(400).json({ message: "Unsupported Undo activity" });
+      }
+      break;
   }
+
   res.status(204).json({ message: "ok" });
 };
