@@ -3,6 +3,7 @@ import supertest from "supertest";
 import * as accountsController from "../../src/controllers/accounts";
 import {
   accountFactory,
+  externalAccountFactory,
   followingFactory,
   likeFactory,
   postFactory,
@@ -55,8 +56,8 @@ describe(accountsController.getAccount, () => {
       expect(response.statusCode).toEqual(200);
       // Accept ヘッダーの一番最初にある application/json にのっとって普通に JSON 形式の情報が返ってくる
       const resAccount: Account = response.body;
-      expect(resAccount).toEqual(
-        expect.objectContaining(toJSONObject(account))
+      expect(toJSONObject(account)).toEqual(
+        expect.objectContaining(resAccount)
       );
     });
   });
@@ -97,8 +98,8 @@ describe(accountsController.getAccount, () => {
       expect(response.statusCode).toEqual(200);
 
       const resAccount: Account = response.body;
-      expect(resAccount).toEqual(
-        expect.objectContaining(toJSONObject(account))
+      expect(toJSONObject(account)).toEqual(
+        expect.objectContaining(resAccount)
       );
     });
 
@@ -120,8 +121,8 @@ describe(accountsController.getAccount, () => {
       expect(response.statusCode).toEqual(200);
 
       const resAccount: Account = response.body;
-      expect(resAccount).toEqual(
-        expect.objectContaining(toJSONObject(account))
+      expect(toJSONObject(account)).toEqual(
+        expect.objectContaining(resAccount)
       );
     });
 
@@ -143,8 +144,8 @@ describe(accountsController.getAccount, () => {
       expect(response.statusCode).toEqual(200);
 
       const resAccount: Account = response.body;
-      expect(resAccount).toEqual(
-        expect.objectContaining(toJSONObject(account))
+      expect(toJSONObject(account)).toEqual(
+        expect.objectContaining(resAccount)
       );
     });
 
@@ -162,7 +163,7 @@ describe(accountsController.getAccount, () => {
     });
 
     test("同一 username の外部インスタンスのユーザーが存在してもローカルに存在しなければ 404 を返す", async () => {
-      const account = await accountFactory.create({ host: "example.com" });
+      const account = await externalAccountFactory.create();
 
       const response = await supertest(app).get(
         `/accounts/${account.username}`
@@ -172,19 +173,27 @@ describe(accountsController.getAccount, () => {
 
     test("同一 username のユーザー情報が外部インスタンスとローカルにあるとき、ローカルのものを返す", async () => {
       const localAccount = await accountFactory.create();
-      const externalAccount = await accountFactory.create({
-        username: localAccount.username,
-        host: "example.com",
-      });
+      const externalAccount = await externalAccountFactory.create();
 
       const response = await supertest(app).get(
         `/accounts/${localAccount.username}`
       );
       expect(response.statusCode).toEqual(200);
       const resAccount: Account = response.body;
-      expect(resAccount).toEqual(
-        expect.objectContaining(toJSONObject(localAccount))
+      expect(toJSONObject(localAccount)).toEqual(
+        expect.objectContaining(resAccount)
       );
+    });
+
+    test("作成した Account が持つ privateKey をレスポンスに含んでいない", async () => {
+      const account = await accountFactory.create();
+
+      const response = await supertest(app).get(
+        `/accounts/${account.username}`
+      );
+      expect(response.statusCode).toEqual(200);
+      const resAccount: Account = response.body;
+      expect(resAccount).not.toHaveProperty("privateKey");
     });
   });
 });
