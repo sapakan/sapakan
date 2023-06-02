@@ -27,7 +27,7 @@ export type Note = {
   to: string[];
   cc: string[];
   url: string;
-  inReplyTo: string | undefined;
+  inReplyTo?: string;
 };
 
 export type FollowActivity = {
@@ -54,4 +54,18 @@ export type UndoActivity = {
   object: Activity;
 };
 
-export type Activity = FollowActivity | AcceptActivity | UndoActivity;
+export type CreateActivity = {
+  "@context": string | (string | object)[];
+  type: "Create";
+  id: string;
+  actor: string;
+  published: string;
+  object: Note;
+  // memo: to, cc は無くても CreateActivity を Pleroma に配送できた
+};
+
+export type Activity =
+  | FollowActivity
+  | AcceptActivity
+  | UndoActivity
+  | CreateActivity;
