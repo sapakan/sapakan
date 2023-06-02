@@ -27,7 +27,7 @@ export type Note = {
   to: string[];
   cc: string[];
   url: string;
-  inReplyTo: string | undefined;
+  inReplyTo?: string;
 };
 
 export type FollowActivity = {

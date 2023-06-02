@@ -85,7 +85,6 @@ function packCreateActivity(post: PostWithAuthor): CreateActivity {
       to: ["https://www.w3.org/ns/activitystreams#Public"],
       cc: [],
       url: `${config.url}/posts/${post.id}`,
-      inReplyTo: undefined,
     },
   };
 
