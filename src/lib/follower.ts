@@ -1,6 +1,5 @@
 import { Account } from "@prisma/client";
 import prisma from "./prisma";
-import { promises } from "dns";
 
 /**
  * account をフォローしているリモートのアカウントを取得します。
