@@ -17,7 +17,7 @@ export async function handleUndoFollowActivity(
   assertFollowingActivity(activity.object);
 
   const remoteAccount = await findOrCreateAccountWithApid(activity.actor);
-  await deleteFollowing(remoteAccount.id, account.id);
+  await deleteFollowing(account.id, remoteAccount.id);
 }
 
 function assertFollowingActivity(
