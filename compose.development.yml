@@ -30,7 +30,7 @@ services:
 
   # 連合をテストするための Pleroma インスタンスのための設定
   pleroma_db:
-    image: postgres:12.1-alpine
+    image: postgres:15.3-alpine
     container_name: pleroma_db
     restart: always
     healthcheck:
