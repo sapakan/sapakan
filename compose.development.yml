@@ -16,7 +16,7 @@ services:
       - sapakan_internal
 
   test_db:
-    image: postgres:15.3-bullseye
+    image: postgres:16.4-bullseye
     environment:
       POSTGRES_USER: ${DEVELOPMENT_POSTGRES_USER:-sapakan_dev}
       POSTGRES_PASSWORD: ${DEVELOPMENT_POSTGRES_PASSWORD:-sapadev}
@@ -30,7 +30,7 @@ services:
 
   # 連合をテストするための Pleroma インスタンスのための設定
   pleroma_db:
-    image: postgres:15.3-alpine
+    image: postgres:16.4-alpine
     container_name: pleroma_db
     restart: always
     healthcheck:
